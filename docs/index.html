@@ -3,82 +3,308 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
-<title>My Long-Term Tracker</title>
+<meta name="theme-color" content="#eef1ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1a1d" media="(prefers-color-scheme: dark)">
+<title>My long-term tracker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b6477'/%3E%3Cpath d='M14 44l13-14 9 8 14-18' fill='none' stroke='%23fff' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Instrument+Sans:wght@400..700&display=swap">
 <style>
-:root{--bg:#f6f7f8;--card:#fff;--text:#14181c;--muted:#5d6872;--line:#e2e6ea;--brand:#0f766e;--brand-text:#fff;
---red:#b42318;--red-bg:#fde8e6;--amber:#9a5b00;--amber-bg:#fdf1d8;--blue:#175cd3;--blue-bg:#e3eefe;--grey:#475467;--grey-bg:#eceff3;
---good:#157347;--bad:#b42318}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1316;--card:#171c20;--text:#e8ecef;--muted:#9aa5ae;--line:#272e34;--brand:#2dd4bf;--brand-text:#04201d;
---red:#ff8a80;--red-bg:#3b1a17;--amber:#ffc86b;--amber-bg:#3a2b0d;--blue:#8ab4ff;--blue-bg:#14284a;--grey:#b6c0c8;--grey-bg:#242b31;
---good:#5ddc9a;--bad:#ff8a80}}
+:root{
+  --paper:#eef1ec; --sheet:#fafbf8; --ink:#1b2b2f; --muted:#5b6c70; --hair:#d8dfd9;
+  --peacock:#0b6477; --peacock-ink:#ffffff; --peacock-t:#d9edf2;
+  --marigold:#a15e00; --marigold-t:#fbefd2;
+  --brick:#b23a2e; --brick-t:#f8e1dd;
+  --leaf:#23774d; --slate-t:#e3e9e4;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0d1a1d; --sheet:#14242a; --ink:#e7efec; --muted:#93a7aa; --hair:#223338;
+  --peacock:#4cc3dc; --peacock-ink:#06222a; --peacock-t:#12333c;
+  --marigold:#f0b44c; --marigold-t:#33290f;
+  --brick:#ff8f82; --brick-t:#3a1c19;
+  --leaf:#5fd69b; --slate-t:#1d2f35;
+}}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.wrap{max-width:720px;margin:0 auto;padding:12px}
-h1{font-size:1.25rem;margin:4px 0 2px}
-.sub{color:var(--muted);font-size:.85rem}
-.banner{background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:.9rem}
-nav{display:flex;gap:6px;margin:12px 0;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5}
-nav button{flex:1;padding:10px 4px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;font:inherit;font-size:.9rem}
-nav button.on{background:var(--brand);color:var(--brand-text);border-color:var(--brand);font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
-.row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.sym{font-weight:700;font-size:1.05rem}
-.name{color:var(--muted);font-size:.8rem}
-.pill{font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
-.SELL{background:var(--red-bg);color:var(--red)}.REVIEW{background:var(--amber-bg);color:var(--amber)}
-.ADD{background:var(--blue-bg);color:var(--blue)}.HOLD{background:var(--grey-bg);color:var(--grey)}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
-.grid div{font-size:.8rem;color:var(--muted)}.grid b{display:block;color:var(--text);font-size:.95rem}
-.up{color:var(--good)}.down{color:var(--bad)}
-.why{margin:8px 0 0;padding-left:18px;font-size:.9rem}.why li{margin:2px 0}
-.note{font-size:.85rem;color:var(--amber);margin-top:6px}
+html{-webkit-text-size-adjust:100%;scroll-padding-bottom:90px}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--sans);
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.app{max-width:640px;margin:0 auto;padding:0 18px calc(96px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--peacock);outline-offset:2px}
+
+/* masthead and hero */
+.mast{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px 0 4px}
+.brand{font:600 1.05rem/1.2 var(--serif);letter-spacing:.005em}
+.asof{font-size:.8rem;color:var(--muted);text-align:right}
+.note-bar{background:var(--marigold-t);color:var(--marigold);border-radius:12px;padding:10px 14px;margin:10px 0;font-size:.88rem}
+.hero{padding:26px 0 22px}
+.verdict{font:500 clamp(1.7rem,7.2vw,2.35rem)/1.12 var(--serif);letter-spacing:-.012em;margin:0;max-width:16em;text-wrap:balance}
+.strip{display:flex;gap:5px;margin:18px 0 14px;flex-wrap:wrap}
+.strip i{display:block;width:26px;height:8px;border-radius:99px;background:var(--muted)}
+.strip i.SELL{background:var(--brick)} .strip i.REVIEW{background:var(--marigold)}
+.strip i.ADD{background:var(--peacock)} .strip i.HOLD{background:var(--leaf);opacity:.55}
+.worth{margin:0;color:var(--muted);font-size:.95rem;max-width:30em}
+.worth b{color:var(--ink);font-weight:600}
+.up{color:var(--leaf)} .down{color:var(--brick)}
+
+/* the ledger: one surface, rows divided by hairlines */
+.sec{font:600 1.1rem/1.2 var(--serif);margin:26px 0 10px}
+.ledger{background:var(--sheet);border:1px solid var(--hair);border-radius:18px;overflow:hidden}
+.ledger>details,.ledger>div.item{border-bottom:1px solid var(--hair);border-left:4px solid transparent}
+.ledger>:last-child{border-bottom:0}
+.ledger>.SELL{border-left-color:var(--brick)} .ledger>.REVIEW{border-left-color:var(--marigold)}
+.ledger>.ADD{border-left-color:var(--peacock)} .ledger>.HOLD{border-left-color:var(--leaf)}
+summary{list-style:none;cursor:pointer;padding:14px 16px 12px;-webkit-tap-highlight-color:transparent}
+summary::-webkit-details-marker{display:none}
+.item{padding:14px 16px 12px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.sym{font-weight:650;font-size:1.02rem;letter-spacing:.01em}
+.nm{display:block;color:var(--muted);font-size:.8rem;line-height:1.3;max-width:15em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.right{text-align:right;flex:none}
+.right b{display:block;font-weight:600;font-size:1.02rem}
+.pl{font-size:.85rem}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:600;margin-left:8px;padding:2px 9px 2px 8px;border-radius:99px;vertical-align:1px}
+.st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st.SELL{background:var(--brick-t);color:var(--brick)} .st.REVIEW{background:var(--marigold-t);color:var(--marigold)}
+.st.ADD{background:var(--peacock-t);color:var(--peacock)} .st.HOLD{background:var(--slate-t);color:var(--muted)}
+.line{margin:8px 0 0;font-size:.88rem;color:var(--ink)}
+.chev{display:inline-block;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-left:8px;transition:transform .2s;vertical-align:3px}
+details[open] .chev{transform:rotate(-135deg)}
+.more{padding:2px 16px 16px}
+
+/* price against its stop: the one distinctive picture on the page */
+.ribbon{margin:12px 0 2px}
+.track{position:relative;height:8px;border-radius:99px;background:var(--slate-t)}
+.fill{position:absolute;top:0;bottom:0;border-radius:99px;transform-origin:left}
+.fill.good{background:var(--leaf)} .fill.mid{background:var(--marigold)} .fill.bad{background:var(--brick)}
+.tick{position:absolute;top:-5px;width:2px;height:18px;margin-left:-1px;border-radius:2px;background:var(--ink)}
+.tick.stop{background:var(--brick)} .tick.tgt{background:var(--peacock)} .tick.peak{background:var(--muted);opacity:.6;height:12px;top:-2px}
+.dot{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--ink);border:3px solid var(--sheet)}
+.keys{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:.76rem;color:var(--muted)}
+.keys span::before{content:"";display:inline-block;width:2px;height:10px;margin-right:6px;vertical-align:-1px;background:var(--ink);border-radius:2px}
+.keys .k-stop::before{background:var(--brick)} .keys .k-tgt::before{background:var(--peacock)} .keys .k-peak::before{background:var(--muted)}
+.intro .fill{animation:grow .8s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleX(0)}}
+
+/* facts, reasons */
+.why{margin:6px 0 10px;padding-left:18px;font-size:.92rem}.why li{margin:3px 0}
+.hint{font-size:.85rem;color:var(--marigold);margin:6px 0}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin:14px 0}
+.facts div{min-width:0}
+.facts dt{font-size:.76rem;color:var(--muted)} .facts dd{margin:1px 0 0;font-weight:600;font-size:.95rem}
 .small{font-size:.8rem;color:var(--muted)}
-label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 3px}
-input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
-textarea{min-height:90px;font-size:.8rem}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-button.primary{background:var(--brand);color:var(--brand-text);border:0;padding:11px 14px;border-radius:10px;font:inherit;font-weight:600;margin-top:12px}
-button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:7px 10px;border-radius:10px;font:inherit;font-size:.85rem}
-button.danger{color:var(--red)}
-details summary{cursor:pointer;font-weight:600}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.chip{font-size:.78rem;background:var(--grey-bg);color:var(--grey);padding:3px 8px;border-radius:8px}
-.err{color:var(--bad);font-size:.9rem;margin-top:8px}
-svg.spark{width:100%;height:70px;margin-top:6px}svg.spark polyline{fill:none;stroke:var(--brand);stroke-width:2;vector-effect:non-scaling-stroke}
-footer{color:var(--muted);font-size:.78rem;margin:18px 0 30px}
-.check{display:flex;gap:10px;align-items:center;margin:10px 0}.check input{width:auto}
+svg.spark{display:block;width:100%;height:76px;margin:6px 0}
+svg.spark polyline{fill:none;stroke:var(--peacock);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+svg.mini{width:76px;height:28px;flex:none}
+svg.mini polyline{fill:none;stroke:var(--peacock);stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.pips{display:flex;gap:4px;align-items:center}
+.pips i{width:8px;height:8px;border-radius:50%;background:var(--slate-t);border:1px solid var(--hair)}
+.pips i.on{background:var(--peacock);border-color:var(--peacock)}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px}
+.meta .small{margin-left:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:.76rem;background:var(--slate-t);color:var(--muted);padding:2px 9px;border-radius:99px}
+
+/* forms and buttons */
+.form{background:var(--sheet);border:1px solid var(--hair);border-radius:18px;padding:4px 16px 16px;margin-top:18px}
+.form>summary{padding:14px 0;font-weight:600}
+label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 4px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--hair);border-radius:12px;background:var(--paper);min-height:44px}
+textarea{min-height:92px;font-size:.8rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:inline-block;border:0;border-radius:12px;padding:12px 18px;min-height:44px;font-weight:600;cursor:pointer;background:var(--peacock);color:var(--peacock-ink);margin-top:14px}
+.btn.quiet{background:transparent;color:var(--ink);border:1px solid var(--hair);margin-top:10px;padding:9px 14px;min-height:40px;font-weight:550}
+.btn.warn{color:var(--brick)}
+.err{color:var(--brick);font-size:.9rem;margin-top:10px}.ok{color:var(--leaf);font-size:.9rem;margin-top:10px}
+.field{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--hair)}
+.field:last-of-type{border-bottom:0}
+.field span{font-size:.92rem;max-width:15em} .field small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+.field input{width:104px;text-align:right}
+.tog{margin:0;display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--hair);font-size:.92rem}
+.tog input{width:22px;height:22px;min-height:0;accent-color:var(--peacock)}
+.tog select{width:84px}
+.panel{background:var(--sheet);border:1px solid var(--hair);border-radius:18px;padding:6px 16px 16px}
+.empty{background:var(--sheet);border:1px dashed var(--hair);border-radius:18px;padding:22px 18px;color:var(--muted);text-align:center}
+.prose p{margin:.7em 0;font-size:.9rem;color:var(--muted)} .prose b{color:var(--ink)}
+footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
+
+/* bottom navigation */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--sheet);border-top:1px solid var(--hair);z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+.bar-in{display:flex;max-width:640px;margin:0 auto}
+.bar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 8px;border:0;background:none;color:var(--muted);font-size:.72rem;font-weight:500;cursor:pointer;min-height:56px}
+.bar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.bar button.on{color:var(--peacock);font-weight:650}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>My Long-Term Tracker</h1>
-  <div class="sub" id="asof">Loading prices...</div>
+<div class="app">
+  <header class="mast">
+    <div class="brand">My long-term tracker</div>
+    <div class="asof" id="asof">Loading prices</div>
+  </header>
   <div id="banner"></div>
-  <nav id="tabs">
-    <button data-tab="holdings">Holdings</button>
-    <button data-tab="ideas">Ideas</button>
-    <button data-tab="lookup">Look up</button>
-    <button data-tab="settings">Settings</button>
-  </nav>
   <main id="view"></main>
   <footer>
     Education and tooling, not financial advice. The signals are simple price rules, not predictions: they
-    cannot see results, news or fraud. Prices are free Yahoo Finance data, end of day, and can be wrong or late.
-    Your holdings are saved only in this browser on this device; use Settings to back them up.
+    cannot see results, news or fraud. Prices are free end-of-day Yahoo Finance data and can be late or wrong.
+    Your holdings are saved only in this browser on this device; use Rules, then Backup, to keep a copy.
   </footer>
 </div>
-<script src="logic.js"></script>
+<nav class="bar" id="tabs" aria-label="Sections"><div class="bar-in">
+  <button data-tab="holdings"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2.5"/><path d="M8 8V6.5A2.5 2.5 0 0 1 10.5 4h3A2.5 2.5 0 0 1 16 6.5V8"/></svg>Holdings</button>
+  <button data-tab="ideas"><svg viewBox="0 0 24 24"><path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg>Ideas</button>
+  <button data-tab="lookup"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Search</button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Rules</button>
+</div></nav>
 <script>
+/* ---- logic.js, inlined so this page works on its own ---- */
+/* logic.js: the rules behind the tracker page. Pure functions, no page code,
+   so the same file is tested with node and used by index.html.
+   Education and tooling, not financial advice. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.LT = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var DEFAULTS = {
+    capPerStock: 5000,   // most you want in one stock, in rupees
+    stopPct: 20,         // sell rule: price this % below what you paid
+    trailArmPct: 10,     // trailing stop starts once the stock is this % above your buy price
+    trailPct: 20,        // ...and sells if it then falls this % from its peak
+    trendDays: 5,        // review if it closes below its 200-day average this many days in a row
+    warnDdPct: 15,       // review if it is this % below its peak since you bought
+    taxWarnDays: 30      // flag when this close to the 12-month mark
+  };
+
+  function inr(n) {
+    if (n == null || isNaN(n)) return '-';
+    return '\u20B9' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+  }
+  function ymd(s) { var p = String(s).split('-').map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+  function fmt(ms) { return new Date(ms).toISOString().slice(0, 10); }
+  function daysBetween(a, b) { return Math.round((ymd(b) - ymd(a)) / 86400000); }
+  // first day a sale counts as long-term: more than 12 months after the buy date
+  function longTermFrom(buyDate) {
+    var p = String(buyDate).split('-').map(Number);
+    return fmt(Date.UTC(p[0] + 1, p[1] - 1, p[2]) + 86400000);
+  }
+
+  function evaluate(h, s, dates, settings, today) {
+    var st = Object.assign({}, DEFAULTS, settings || {});
+    var qty = Number(h.qty), buy = Number(h.price), m = s.m || {};
+    var invested = qty * buy, value = qty * s.p;
+    var pnl = value - invested, pnlPct = (s.p / buy - 1) * 100;
+    var daysHeld = Math.max(0, daysBetween(h.buyDate, today));
+    var ltFrom = longTermFrom(h.buyDate);
+    var daysToLT = daysBetween(today, ltFrom);
+    var peak = buy;
+    for (var i = 0; i < dates.length; i++) {
+      var c = s.c ? s.c[i] : null;
+      if (c != null && dates[i] >= h.buyDate && c > peak) peak = c;
+    }
+    if (s.p > peak) peak = s.p;
+    var ddPeak = (s.p / peak - 1) * 100;
+    var stopPrice = h.stop ? Number(h.stop) : buy * (1 - st.stopPct / 100);
+    var trailArmed = peak >= buy * (1 + st.trailArmPct / 100);
+    var trailPrice = trailArmed ? peak * (1 - st.trailPct / 100) : null;
+
+    var sell = [], review = [], notes = [];
+    if (s.p <= stopPrice) sell.push('Price ' + inr(s.p) + ' is at or below your stop ' + inr(stopPrice));
+    if (trailPrice != null && s.p <= trailPrice)
+      sell.push('Fell ' + Math.round(-ddPeak) + '% from its peak after a gain: trailing stop hit');
+    if (m.below200 >= st.trendDays)
+      review.push('Closed below its 200-day average ' + m.below200 + ' days in a row: the trend has broken');
+    if (h.target && s.p >= Number(h.target))
+      review.push('Reached your target ' + inr(h.target) + ': decide whether to take some profit');
+    if (!sell.length && ddPeak <= -st.warnDdPct)
+      review.push('Down ' + Math.round(-ddPeak) + '% from its peak since you bought');
+    if (daysToLT > 0 && daysToLT <= st.taxWarnDays && pnl > 0)
+      notes.push(daysToLT + ' days until the gain is taxed at the long-term rate (from ' + ltFrom +
+                 '). Unless a sell rule hits, waiting may save tax.');
+
+    var status = 'HOLD', reasons;
+    if (sell.length) { status = 'SELL'; reasons = sell.concat(review); }
+    else if (review.length) { status = 'REVIEW'; reasons = review; }
+    else if (m.dma200 && m.dma50 && s.p > m.dma200 && s.p <= m.dma50 * 1.05 && value < st.capPerStock * 0.8) {
+      status = 'ADD';
+      reasons = ['Trend is up and the price is not stretched; there is room for about ' +
+                 inr(Math.floor(st.capPerStock - value)) + ' more under your ' + inr(st.capPerStock) + ' cap'];
+    } else {
+      reasons = ['No sell rule hit' + (m.trend ? '; trend ' + m.trend.toLowerCase() : '')];
+    }
+    return {
+      status: status, reasons: reasons, notes: notes, invested: invested, value: value, pnl: pnl, pnlPct: pnlPct,
+      daysHeld: daysHeld, isLong: daysToLT <= 0, daysToLT: daysToLT, longFrom: ltFrom, peak: peak, ddPeak: ddPeak,
+      stopPrice: stopPrice, trailPrice: trailPrice, stale: !!s.stale
+    };
+  }
+
+  function ideaCandidates(symbols, opts) {
+    var o = Object.assign({ minChecks: 5, onlyLists: false, affordableOnly: true, cap: DEFAULTS.capPerStock }, opts || {});
+    var out = [];
+    Object.keys(symbols).forEach(function (sym) {
+      var s = symbols[sym], m = s.m;
+      if (!m || m.checks == null || s.stale) return;
+      if (m.checks < o.minChecks) return;
+      if (o.onlyLists && !(s.L && s.L.length)) return;
+      var q = Math.floor(o.cap / s.p);
+      if (o.affordableOnly && q < 1) return;
+      out.push({ sym: sym, s: s, qty: q, cost: q * s.p });
+    });
+    out.sort(function (a, b) {
+      if (b.s.m.checks !== a.s.m.checks) return b.s.m.checks - a.s.m.checks;
+      var x = a.s.m.r6m == null ? -1e9 : a.s.m.r6m, y = b.s.m.r6m == null ? -1e9 : b.s.m.r6m;
+      return y - x;
+    });
+    return out;
+  }
+
+  function findSymbols(symbols, query, limit) {
+    var q = String(query || '').trim().toUpperCase();
+    if (!q) return [];
+    var exact = [], starts = [], within = [];
+    Object.keys(symbols).forEach(function (sym) {
+      var nm = String(symbols[sym].n || '').toUpperCase();
+      if (sym === q) exact.push(sym);
+      else if (sym.indexOf(q) === 0) starts.push(sym);
+      else if (nm.indexOf(q) >= 0) within.push(sym);
+    });
+    starts.sort(); within.sort();
+    return exact.concat(starts, within).slice(0, limit || 8);
+  }
+
+  function sparkPoints(closes, w, h) {
+    var pts = [], lo = Infinity, hi = -Infinity, i;
+    for (i = 0; i < closes.length; i++) if (closes[i] != null) { lo = Math.min(lo, closes[i]); hi = Math.max(hi, closes[i]); }
+    if (!isFinite(lo)) return '';
+    var span = hi - lo || 1, n = closes.length - 1 || 1;
+    for (i = 0; i < closes.length; i++) {
+      if (closes[i] == null) continue;
+      pts.push((i / n * w).toFixed(1) + ',' + (h - (closes[i] - lo) / span * h).toFixed(1));
+    }
+    return pts.join(' ');
+  }
+
+  return { DEFAULTS: DEFAULTS, inr: inr, daysBetween: daysBetween, longTermFrom: longTermFrom,
+           evaluate: evaluate, ideaCandidates: ideaCandidates, findSymbols: findSymbols, sparkPoints: sparkPoints };
+});
+</script>
+<script>
+if (!window.LT) { document.getElementById("view").innerHTML = "<p style=\"padding:20px\">The page code did not load. Reload; if it keeps happening, tell the person who set it up.</p>"; throw new Error("LT missing"); }
 (function () {
 'use strict';
 var LT = window.LT, inr = LT.inr;
 var KEY_H = 'lt_holdings_v1', KEY_S = 'lt_settings_v1';
-var DATA = null, tab = 'holdings', prefill = null, msg = '', lookupQ = '';
+var DATA = null, tab = 'holdings', prefill = null, msg = '', msgKind = 'err', lookupQ = '', firstPaint = true;
 var ideaOpts = { minChecks: 5, onlyLists: false, affordableOnly: true };
 var canSave = true;
+var LABEL = { SELL: 'Sell', REVIEW: 'Review', ADD: 'Room to add', HOLD: 'Hold' };
 
 function load(key, dflt) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : dflt; } catch (e) { canSave = false; return dflt; } }
 function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { canSave = false; return false; } }
@@ -88,164 +314,208 @@ var settings = Object.assign({}, LT.DEFAULTS, load(KEY_S, {}));
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function pct(x, d) { if (x == null || isNaN(x)) return '-'; return (x > 0 ? '+' : '') + Number(x).toFixed(d == null ? 1 : d) + '%'; }
 function cls(x) { return x > 0 ? 'up' : (x < 0 ? 'down' : ''); }
+function money(n) { return inr(Math.round(n)); }
 function todayISO() { var d = new Date(), m = ('0' + (d.getMonth() + 1)).slice(-2), day = ('0' + d.getDate()).slice(-2); return d.getFullYear() + '-' + m + '-' + day; }
+function niceDate(iso) { var p = iso.split('-'); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }); }
 function $(id) { return document.getElementById(id); }
 
-// ---------------------------------------------------------------- pieces
+/* ---------------------------------------------------------- small pieces */
 function spark(closes) {
-  var pts = LT.sparkPoints(closes || [], 300, 70);
-  return pts ? '<svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-label="price chart, about a year"><polyline points="' + pts + '"/></svg>' : '';
+  var pts = LT.sparkPoints(closes || [], 300, 76);
+  return pts ? '<svg class="spark" viewBox="0 0 300 76" preserveAspectRatio="none" role="img" aria-label="price over about a year"><polyline points="' + pts + '"/></svg>' : '';
 }
-function detail(sym, s) {
-  var m = s.m || {}, h = '';
-  h += '<div class="grid">' +
-    '<div>1 month<b class="' + cls(m.r1m) + '">' + pct(m.r1m) + '</b></div>' +
-    '<div>6 months<b class="' + cls(m.r6m) + '">' + pct(m.r6m) + '</b></div>' +
-    '<div>12 months<b class="' + cls(m.r12m) + '">' + pct(m.r12m) + '</b></div>' +
-    '<div>vs 200-day avg<b class="' + cls(m.vs200) + '">' + pct(m.vs200) + '</b></div>' +
-    '<div>from 52w high<b class="' + cls(m.dd) + '">' + pct(m.dd) + '</b></div>' +
-    '<div>volatility<b>' + (m.vol == null ? '-' : m.vol + '%') + '</b></div></div>';
-  if (m.checks != null) {
-    h += '<div class="small">Trend checks passed: <b>' + m.checks + ' of 6</b>' +
-      (m.failed && m.failed.length ? '. Missed: ' + esc(m.failed.join('; ')) : '') + '</div>';
-  } else {
-    h += '<div class="small">Not enough price history for the 6 trend checks.</div>';
-  }
-  return h + spark(s.c);
+function mini(closes) {
+  var pts = LT.sparkPoints(closes || [], 76, 28);
+  return pts ? '<svg class="mini" viewBox="0 0 76 28" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts + '"/></svg>' : '';
 }
-function listBadges(s) { return (s.L || []).map(function (l) { return '<span class="chip">' + esc(l) + '</span>'; }).join(''); }
+function pips(n) { var o = ''; for (var i = 0; i < 6; i++) o += '<i class="' + (i < n ? 'on' : '') + '"></i>'; return '<span class="pips" role="img" aria-label="' + n + ' of 6 checks passed">' + o + '</span>'; }
 
-// ------------------------------------------------------------- holdings
+// where the price sits between your stop and its peak
+function ribbon(h, s, r) {
+  var buy = Number(h.price), tgt = h.target ? Number(h.target) : null;
+  var lo = Math.min(r.stopPrice, s.p, buy) * 0.97, hi = Math.max(r.peak, tgt || 0, s.p, buy) * 1.03, span = hi - lo || 1;
+  function at(v) { return Math.max(0, Math.min(100, (v - lo) / span * 100)); }
+  var a = at(r.stopPrice), b = at(s.p), left = Math.min(a, b), width = Math.abs(b - a);
+  var kind = s.p <= r.stopPrice ? 'bad' : (s.p >= buy ? 'good' : 'mid');
+  var h2 = '<div class="ribbon"><div class="track">' +
+    '<div class="fill ' + kind + '" style="left:' + left.toFixed(1) + '%;width:' + width.toFixed(1) + '%"></div>' +
+    '<i class="tick stop" style="left:' + a.toFixed(1) + '%"></i>' +
+    '<i class="tick" style="left:' + at(buy).toFixed(1) + '%"></i>' +
+    (r.peak > buy ? '<i class="tick peak" style="left:' + at(r.peak).toFixed(1) + '%"></i>' : '') +
+    (tgt ? '<i class="tick tgt" style="left:' + at(tgt).toFixed(1) + '%"></i>' : '') +
+    '<i class="dot" style="left:' + b.toFixed(1) + '%"></i></div>' +
+    '<div class="keys"><span class="k-stop">Stop ' + inr(Math.round(r.stopPrice * 100) / 100) + '</span><span>Paid ' + inr(buy) + '</span>' +
+    (r.peak > buy ? '<span class="k-peak">Peak ' + inr(r.peak) + '</span>' : '') +
+    (tgt ? '<span class="k-tgt">Target ' + inr(tgt) + '</span>' : '') + '</div></div>';
+  return h2;
+}
+function trendFacts(s) {
+  var m = s.m || {};
+  var o = '<dl class="facts">' +
+    '<div><dt>Past month</dt><dd class="' + cls(m.r1m) + '">' + pct(m.r1m) + '</dd></div>' +
+    '<div><dt>Past 6 months</dt><dd class="' + cls(m.r6m) + '">' + pct(m.r6m) + '</dd></div>' +
+    '<div><dt>Past 12 months</dt><dd class="' + cls(m.r12m) + '">' + pct(m.r12m) + '</dd></div>' +
+    '<div><dt>Against 200-day average</dt><dd class="' + cls(m.vs200) + '">' + pct(m.vs200) + '</dd></div>' +
+    '<div><dt>From 52-week high</dt><dd class="' + cls(m.dd) + '">' + pct(m.dd) + '</dd></div>' +
+    '<div><dt>Yearly swing</dt><dd>' + (m.vol == null ? '-' : m.vol + '%') + '</dd></div></dl>';
+  if (m.checks != null) {
+    o += '<div class="small">Passes ' + m.checks + ' of 6 trend checks' + (m.failed && m.failed.length ? '. Missed: ' + esc(m.failed.join('; ')) + '.' : '.') + '</div>';
+  } else {
+    o += '<div class="small">Not enough price history for the trend checks.</div>';
+  }
+  return o + spark(s.c);
+}
+function listChips(s) { return (s.L || []).map(function (l) { return '<span class="chip">' + esc(l) + '</span>'; }).join(''); }
+function emptyBox(t) { return '<div class="empty">' + t + '</div>'; }
+
+/* -------------------------------------------------------------- holdings */
+function verdict(c, total) {
+  if (!total) return 'Add your first stock and this page will watch it every evening.';
+  if (c.SELL) return c.SELL + (c.SELL === 1 ? ' holding has' : ' holdings have') + ' hit a sell rule.';
+  if (c.REVIEW) return c.REVIEW + (c.REVIEW === 1 ? ' holding is' : ' holdings are') + ' worth a look today.';
+  return total === 1 ? 'Your holding is on track.' : 'All ' + total + ' holdings are on track.';
+}
 function renderHoldings() {
   var today = todayISO(), order = { SELL: 0, REVIEW: 1, ADD: 2, HOLD: 3 }, rows = [], inv = 0, val = 0;
+  var c = { SELL: 0, REVIEW: 0, ADD: 0, HOLD: 0 };
   holdings.forEach(function (h) {
     var s = DATA.symbols[h.sym];
     if (!s) { rows.push({ h: h, missing: true, k: 9 }); return; }
     var r = LT.evaluate(h, s, DATA.dates, settings, today);
-    inv += r.invested; val += r.value;
+    inv += r.invested; val += r.value; c[r.status]++;
     rows.push({ h: h, s: s, r: r, k: order[r.status] });
   });
   rows.sort(function (a, b) { return a.k - b.k; });
-  var out = '';
-  if (rows.length) {
-    var pnl = val - inv, p = inv ? (val / inv - 1) * 100 : 0;
-    out += '<div class="card"><div class="row"><div><div class="small">Invested</div><b>' + inr(Math.round(inv)) + '</b></div>' +
-      '<div><div class="small">Now worth</div><b>' + inr(Math.round(val)) + '</b></div>' +
-      '<div><div class="small">Profit / loss</div><b class="' + cls(pnl) + '">' + inr(Math.round(pnl)) + ' (' + pct(p) + ')</b></div></div></div>';
-  }
-  rows.forEach(function (row) {
-    var h = row.h;
-    if (row.missing) {
-      out += '<div class="card"><div class="row"><div><span class="sym">' + esc(h.sym) + '</span><div class="name">Not in the data file. Add it to data/extra.txt on GitHub.</div></div>' +
-        '<button class="ghost danger" data-act="del" data-id="' + h.id + '">Remove</button></div></div>';
-      return;
-    }
-    var r = row.r, s = row.s;
-    out += '<div class="card"><div class="row"><div><span class="sym">' + esc(h.sym) + '</span><div class="name">' + esc(s.n) + '</div></div>' +
-      '<span class="pill ' + r.status + '">' + r.status + '</span></div>' +
-      '<ul class="why">' + r.reasons.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
-      r.notes.map(function (x) { return '<div class="note">' + esc(x) + '</div>'; }).join('') +
-      (r.stale ? '<div class="note">This price is old: the last update could not refresh this stock.</div>' : '') +
-      '<div class="grid"><div>Bought<b>' + h.qty + ' x ' + inr(h.price) + '</b></div>' +
-      '<div>Price now<b>' + inr(s.p) + '</b></div>' +
-      '<div>Profit / loss<b class="' + cls(r.pnl) + '">' + inr(Math.round(r.pnl)) + ' (' + pct(r.pnlPct) + ')</b></div>' +
-      '<div>Held<b>' + r.daysHeld + ' days</b></div>' +
-      '<div>Tax bucket<b>' + (r.isLong ? 'Long-term' : 'Short-term') + '</b></div>' +
-      '<div>' + (r.isLong ? 'Long-term since' : 'Long-term from') + '<b>' + esc(r.longFrom) + '</b></div></div>' +
-      '<div class="small">Your sell levels: stop ' + inr(Math.round(r.stopPrice * 100) / 100) +
-      (r.trailPrice ? ' | trailing ' + inr(Math.round(r.trailPrice * 100) / 100) : ' | trailing starts after a ' + settings.trailArmPct + '% gain') +
-      ' | peak since buying ' + inr(r.peak) + '</div>' +
-      '<details><summary class="small">Chart and trend details</summary>' + detail(h.sym, s) + '</details>' +
-      '<div style="margin-top:8px"><button class="ghost danger" data-act="del" data-id="' + h.id + '">Remove</button></div></div>';
-  });
-  if (!rows.length) out += '<div class="card">No holdings yet. Add what you own below, or pick something from the Ideas tab.</div>';
+  var total = c.SELL + c.REVIEW + c.ADD + c.HOLD;
 
-  var syms = Object.keys(DATA.symbols).sort();
-  var pf = prefill || {};
-  out += '<details class="card"' + (rows.length ? '' : ' open') + (pf.sym ? ' open' : '') + '><summary>Add a stock I bought</summary>' +
-    '<label>Stock symbol</label><input id="f-sym" list="symlist" autocapitalize="characters" autocomplete="off" placeholder="e.g. JIOFIN" value="' + esc(pf.sym || '') + '">' +
+  var out = '<section class="hero"><h1 class="verdict">' + verdict(c, total) + '</h1>';
+  if (total) {
+    out += '<div class="strip" aria-hidden="true">' + rows.filter(function (x) { return x.r; }).map(function (x) { return '<i class="' + x.r.status + '"></i>'; }).join('') + '</div>';
+    var pnl = val - inv, p = inv ? (val / inv - 1) * 100 : 0;
+    out += '<p class="worth">Worth <b>' + money(val) + '</b> now, <span class="' + cls(pnl) + '">' + (pnl >= 0 ? 'up ' : 'down ') + money(Math.abs(pnl)) +
+      ' (' + Math.abs(p).toFixed(1) + '%)</span> on the ' + money(inv) + ' you put in.</p>';
+  }
+  out += '</section>';
+
+  if (rows.length) {
+    out += '<div class="ledger">';
+    rows.forEach(function (row) {
+      var h = row.h;
+      if (row.missing) {
+        out += '<div class="item HOLD"><div class="top"><div><span class="sym">' + esc(h.sym) + '</span><span class="nm">Not in the data file. Add it to data/extra.txt on GitHub.</span></div>' +
+          '<button class="btn quiet warn" style="margin:0" data-act="del" data-id="' + h.id + '">Remove</button></div></div>';
+        return;
+      }
+      var r = row.r, s = row.s, first = r.status === 'HOLD' ? '' : '<p class="line">' + esc(r.reasons[0]) + '</p>';
+      out += '<details class="' + r.status + '"><summary><div class="top"><div><span class="sym">' + esc(h.sym) + '</span>' +
+        '<span class="st ' + r.status + '">' + LABEL[r.status] + '</span><span class="nm">' + esc(s.n) + '</span></div>' +
+        '<div class="right"><b>' + money(r.value) + '</b><span class="pl ' + cls(r.pnl) + '">' + (r.pnl >= 0 ? '+' : '-') + money(Math.abs(r.pnl)).replace('-', '') +
+        ' (' + pct(r.pnlPct) + ')<span class="chev"></span></span></div></div>' +
+        ribbon(h, s, r) + first + '</summary>' +
+        '<div class="more">' +
+        '<ul class="why">' + r.reasons.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        r.notes.map(function (x) { return '<div class="hint">' + esc(x) + '</div>'; }).join('') +
+        (r.stale ? '<div class="hint">This price is old: the last update could not refresh this stock.</div>' : '') +
+        '<dl class="facts">' +
+        '<div><dt>You bought</dt><dd>' + h.qty + ' at ' + inr(h.price) + '</dd></div>' +
+        '<div><dt>Price now</dt><dd>' + inr(s.p) + '</dd></div>' +
+        '<div><dt>Held for</dt><dd>' + r.daysHeld + ' days</dd></div>' +
+        '<div><dt>' + (r.isLong ? 'Long-term since' : 'Long-term from') + '</dt><dd>' + esc(niceDate(r.longFrom)) + (r.isLong ? '' : ' (short-term now)') + '</dd></div></dl>' +
+        trendFacts(s) +
+        '<button class="btn quiet warn" data-act="del" data-id="' + h.id + '">Remove this holding</button></div></details>';
+    });
+    out += '</div>';
+  } else {
+    out += emptyBox('Nothing here yet. Add a stock below, or pick one from Ideas.');
+  }
+
+  var syms = Object.keys(DATA.symbols).sort(), pf = prefill || {}, today2 = todayISO();
+  out += '<details class="form"' + ((rows.length && !pf.sym && !msg) ? '' : ' open') + '><summary>Add a stock I bought</summary>' +
+    '<label for="f-sym">Stock symbol</label><input id="f-sym" list="symlist" autocapitalize="characters" autocomplete="off" placeholder="for example JIOFIN" value="' + esc(pf.sym || '') + '">' +
     '<datalist id="symlist">' + syms.map(function (x) { return '<option value="' + esc(x) + '">' + esc(DATA.symbols[x].n) + '</option>'; }).join('') + '</datalist>' +
-    '<div class="two"><div><label>Buy date</label><input id="f-date" type="date" max="' + today + '" value="' + today + '"></div>' +
-    '<div><label>Quantity</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1" placeholder="shares"></div></div>' +
-    '<div class="two"><div><label>Price you paid</label><input id="f-price" type="number" inputmode="decimal" step="0.01" value="' + (pf.price || '') + '"></div>' +
-    '<div><label>Your stop price (optional)</label><input id="f-stop" type="number" inputmode="decimal" step="0.01"></div></div>' +
-    '<label>Your target price (optional)</label><input id="f-target" type="number" inputmode="decimal" step="0.01">' +
-    '<button class="primary" data-act="add">Save holding</button>' + (msg ? '<div class="err">' + esc(msg) + '</div>' : '') + '</details>';
-  if (!canSave) out += '<div class="banner">This browser is blocking storage (private mode?), so holdings will not be saved.</div>';
+    '<div class="two"><div><label for="f-date">Buy date</label><input id="f-date" type="date" max="' + today2 + '" value="' + today2 + '"></div>' +
+    '<div><label for="f-qty">Shares</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1"></div></div>' +
+    '<div class="two"><div><label for="f-price">Price you paid</label><input id="f-price" type="number" inputmode="decimal" step="0.01" value="' + (pf.price || '') + '"></div>' +
+    '<div><label for="f-stop">Your stop price (optional)</label><input id="f-stop" type="number" inputmode="decimal" step="0.01"></div></div>' +
+    '<label for="f-target">Your target price (optional)</label><input id="f-target" type="number" inputmode="decimal" step="0.01">' +
+    '<button class="btn" data-act="add">Save holding</button>' + (msg ? '<div class="err">' + esc(msg) + '</div>' : '') + '</details>';
+  if (!canSave) out += '<div class="note-bar">This browser is blocking storage (private mode?), so holdings will not be saved.</div>';
+  $('view').className = firstPaint ? 'intro' : '';
   $('view').innerHTML = out;
-  msg = ''; prefill = null;
+  firstPaint = false; msg = ''; prefill = null;
 }
 
-// ---------------------------------------------------------------- ideas
+/* ----------------------------------------------------------------- ideas */
+function ideaRow(sym, s, extra) {
+  var m = s.m;
+  return '<details class="HOLD" style="border-left-color:transparent"><summary><div class="top"><div><span class="sym">' + esc(sym) + '</span><span class="nm">' + esc(s.n) + '</span></div>' +
+    '<div class="right"><b>' + inr(s.p) + '</b><span class="pl ' + cls(m.r12m) + '">' + pct(m.r12m, 0) + ' in a year<span class="chev"></span></span></div></div>' +
+    '<div class="meta">' + (m.checks != null ? pips(m.checks) : '<span class="small">Too new to score</span>') + mini(s.c) + '</div>' +
+    (extra ? '<p class="line small" style="margin-top:6px">' + extra + '</p>' : '') + '</summary>' +
+    '<div class="more">' + (s.L && s.L.length ? '<div class="chips" style="margin:0 0 8px">' + listChips(s) + '</div>' : '') + trendFacts(s) +
+    '<button class="btn quiet" data-act="bought" data-sym="' + esc(sym) + '">I bought this</button></div></details>';
+}
 function renderIdeas() {
   var res = LT.ideaCandidates(DATA.symbols, { minChecks: ideaOpts.minChecks, onlyLists: ideaOpts.onlyLists,
     affordableOnly: ideaOpts.affordableOnly, cap: settings.capPerStock });
-  var out = '<div class="card"><b>Stocks passing the trend checks</b><div class="small">A price-trend screen only: it says nothing about the business. ' +
-    'Check results, debt and valuation yourself (for example on Screener.in) before buying.</div>' +
-    '<label>Minimum checks passed (of 6)</label><select id="i-min">' +
-    [4, 5, 6].map(function (n) { return '<option value="' + n + '"' + (n === ideaOpts.minChecks ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
-    '<div class="check"><input type="checkbox" id="i-lists"' + (ideaOpts.onlyLists ? ' checked' : '') + '><span>Only stocks on my own lists (data/screens.txt)</span></div>' +
-    '<div class="check"><input type="checkbox" id="i-aff"' + (ideaOpts.affordableOnly ? ' checked' : '') + '><span>Only if 1 share fits under my ' + inr(settings.capPerStock) + ' cap</span></div></div>';
-  out += '<div class="small">' + res.length + ' found' + (res.length > 40 ? ', showing the first 40' : '') + '.</div>';
-  res.slice(0, 40).forEach(function (r) {
-    var s = r.s, m = s.m;
-    out += '<div class="card"><div class="row"><div><span class="sym">' + esc(r.sym) + '</span><div class="name">' + esc(s.n) + '</div></div>' +
-      '<div style="text-align:right"><b>' + inr(s.p) + '</b><div class="small">' + m.checks + ' of 6 checks</div></div></div>' +
-      '<div class="chips"><span class="chip">12m ' + pct(m.r12m, 0) + '</span><span class="chip">6m ' + pct(m.r6m, 0) + '</span>' +
-      '<span class="chip">vs 200d ' + pct(m.vs200, 0) + '</span><span class="chip">from high ' + pct(m.dd, 0) + '</span>' + listBadges(s) + '</div>' +
-      '<div class="small">' + settings.capPerStock + ' rupees buys ' + r.qty + ' share' + (r.qty === 1 ? '' : 's') + ' (about ' + inr(Math.round(r.cost)) + ').</div>' +
-      '<details><summary class="small">Details</summary>' + detail(r.sym, s) + '</details>' +
-      '<div style="margin-top:8px"><button class="ghost" data-act="bought" data-sym="' + esc(r.sym) + '">I bought this</button></div></div>';
-  });
-  $('view').innerHTML = out;
+  var out = '<section class="hero"><h1 class="verdict">' + (res.length ? res.length + (res.length === 1 ? ' stock is' : ' stocks are') + ' in a steady uptrend.' : 'No stock passes these filters today.') + '</h1>' +
+    '<p class="worth">This only looks at price trends. It says nothing about the business, so read the results and debt on Screener.in before you buy.</p></section>' +
+    '<div class="panel"><div class="tog"><span style="flex:1">Checks a stock must pass (of 6)</span><select id="i-min" aria-label="Minimum checks">' +
+    [4, 5, 6].map(function (n) { return '<option value="' + n + '"' + (n === ideaOpts.minChecks ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
+    '<label class="tog"><input type="checkbox" id="i-lists"' + (ideaOpts.onlyLists ? ' checked' : '') + '><span>Only stocks on my own lists</span></label>' +
+    '<label class="tog" style="border-bottom:0;padding-bottom:0"><input type="checkbox" id="i-aff"' + (ideaOpts.affordableOnly ? ' checked' : '') + '><span>Only if one share fits my ' + money(settings.capPerStock) + ' limit</span></label></div>';
+  if (res.length) {
+    out += '<h2 class="sec">' + (res.length > 40 ? 'Top 40' : 'Matches') + '</h2><div class="ledger">' + res.slice(0, 40).map(function (r) {
+      return ideaRow(r.sym, r.s, money(settings.capPerStock) + ' buys ' + r.qty + (r.qty === 1 ? ' share' : ' shares') + ' (about ' + money(r.cost) + ').');
+    }).join('') + '</div>';
+  }
+  $('view').className = ''; $('view').innerHTML = out;
 }
 
-// --------------------------------------------------------------- lookup
+/* ---------------------------------------------------------------- search */
 function renderLookup() {
-  var out = '<div class="card"><label>Search any stock by symbol or name</label><input id="q" placeholder="e.g. JIO or Reliance" value="' + esc(lookupQ) + '" autocomplete="off"></div><div id="qres"></div>';
-  $('view').innerHTML = out;
+  $('view').className = '';
+  $('view').innerHTML = '<section class="hero" style="padding-bottom:10px"><h1 class="verdict">Look up any stock.</h1></section>' +
+    '<input id="q" type="search" placeholder="Symbol or name, for example JIO" value="' + esc(lookupQ) + '" autocomplete="off" aria-label="Search stocks"><div id="qres" style="margin-top:14px"></div>';
   showLookup();
 }
 function showLookup() {
   var syms = LT.findSymbols(DATA.symbols, lookupQ, 8), out = '';
-  syms.forEach(function (sym) {
-    var s = DATA.symbols[sym];
-    out += '<div class="card"><div class="row"><div><span class="sym">' + esc(sym) + '</span><div class="name">' + esc(s.n) + '</div></div>' +
-      '<div style="text-align:right"><b>' + inr(s.p) + '</b><div class="small">' + esc(s.d) + '</div></div></div>' + listBadges(s) + detail(sym, s) +
-      '<div style="margin-top:8px"><button class="ghost" data-act="bought" data-sym="' + esc(sym) + '">I bought this</button></div></div>';
-  });
-  if (lookupQ && !syms.length) out = '<div class="card">Nothing found. If it is an ETF or a stock outside your list, add it to data/extra.txt on GitHub.</div>';
+  if (syms.length) out = '<div class="ledger">' + syms.map(function (sym) { return ideaRow(sym, DATA.symbols[sym], 'Last price ' + esc(niceDate(DATA.symbols[sym].d)) + '.'); }).join('') + '</div>';
+  else if (lookupQ) out = emptyBox('Nothing found. For an ETF or a stock outside your list, add it to data/extra.txt on GitHub and run the update.');
   $('qres').innerHTML = out;
 }
 
-// ------------------------------------------------------------- settings
+/* ----------------------------------------------------------------- rules */
 function field(id, label, val, hint) {
-  return '<label>' + label + '</label><input id="' + id + '" type="number" inputmode="decimal" step="any" value="' + esc(val) + '">' + (hint ? '<div class="small">' + hint + '</div>' : '');
+  return '<div class="field"><span>' + label + (hint ? '<small>' + hint + '</small>' : '') + '</span><input id="' + id + '" type="number" inputmode="decimal" step="any" value="' + esc(val) + '" aria-label="' + esc(label) + '"></div>';
 }
 function renderSettings() {
   var backup = JSON.stringify({ holdings: holdings, settings: settings });
-  $('view').innerHTML = '<div class="card"><b>Your rules</b>' +
-    field('s-cap', 'Most you want in one stock (rupees)', settings.capPerStock) +
-    field('s-stop', 'Sell rule: price this % below what you paid', settings.stopPct, 'Default 20. A wider stop means fewer false alarms and bigger losses.') +
-    field('s-arm', 'Trailing stop starts after a gain of (%)', settings.trailArmPct) +
-    field('s-trail', 'Trailing stop: sell if it falls this % from its peak', settings.trailPct) +
-    field('s-days', 'Review if closed under the 200-day average this many days in a row', settings.trendDays) +
-    field('s-dd', 'Review if this % below its peak since you bought', settings.warnDdPct) +
-    '<button class="primary" data-act="save-settings">Save rules</button>' + (msg ? '<div class="err" style="color:var(--good)">' + esc(msg) + '</div>' : '') + '</div>' +
-    '<details class="card"><summary>How the signals work</summary><div class="small">' +
-    '<p><b>SELL</b>: your stop price was hit, or after a gain of at least the trailing-start % it fell by the trailing % from its peak.</p>' +
-    '<p><b>REVIEW</b>: it closed under its 200-day average for several days in a row, or reached your target, or is well off its peak since you bought. Look at the news and results, then decide.</p>' +
-    '<p><b>ADD</b>: trend is up, price is not stretched above its 50-day average, and the holding is under 80% of your cap.</p>' +
-    '<p><b>HOLD</b>: no rule hit.</p>' +
-    '<p><b>Tax</b>: for listed shares, a sale more than 12 months after buying is long-term (12.5% above Rs 1.25 lakh of gains a year as published for 2026-27); within 12 months it is short-term (20%). The page shows the date and counts the days. Confirm with a tax professional or your broker statement.</p></div></details>' +
-    '<div class="card"><b>Back up or move your holdings</b><div class="small">Copy this text somewhere safe. To use another phone, paste it into the restore box there.</div>' +
-    '<label>Backup</label><textarea id="bk" readonly>' + esc(backup) + '</textarea><button class="ghost" data-act="copy">Copy</button>' +
-    '<label>Restore from a backup</label><textarea id="rs" placeholder="paste backup text here"></textarea><button class="ghost" data-act="restore">Restore</button>' +
-    ' <button class="ghost danger" data-act="clear">Delete all my holdings</button></div>';
+  $('view').className = '';
+  $('view').innerHTML = '<section class="hero" style="padding-bottom:6px"><h1 class="verdict">Your rules.</h1><p class="worth">Change them any time. Every holding is checked against these each evening.</p></section>' +
+    '<div class="panel">' +
+    field('s-cap', 'Most to hold in one stock (rupees)', settings.capPerStock) +
+    field('s-stop', 'Sell if the price falls this % below what you paid', settings.stopPct, 'A wider stop gives fewer false alarms and bigger losses.') +
+    field('s-arm', 'Start the trailing stop after a gain of (%)', settings.trailArmPct) +
+    field('s-trail', 'Then sell if it falls this % from its peak', settings.trailPct) +
+    field('s-days', 'Review after this many days under the 200-day average', settings.trendDays) +
+    field('s-dd', 'Review if it is this % below its peak since you bought', settings.warnDdPct) +
+    '<button class="btn" data-act="save-settings">Save rules</button>' + (msg ? '<div class="' + msgKind + '">' + esc(msg) + '</div>' : '') + '</div>' +
+    '<h2 class="sec">How the signals work</h2><div class="panel prose">' +
+    '<p><b>Sell</b>: your stop price was hit, or after a gain it fell by the trailing % from its peak.</p>' +
+    '<p><b>Review</b>: it closed under its 200-day average for several days running, reached your target, or is well below its peak since you bought. Check the news and results, then decide.</p>' +
+    '<p><b>Room to add</b>: the trend is up, the price is not stretched above its 50-day average, and you hold under 80% of your limit.</p>' +
+    '<p><b>Hold</b>: no rule has been hit.</p>' +
+    '<p><b>Tax</b>: for listed shares, a sale more than 12 months after buying is long-term (12.5% above Rs 1.25 lakh of gains a year, as published for 2026-27). Within 12 months it is short-term (20%). Confirm with a tax professional or your broker statement.</p></div>' +
+    '<h2 class="sec">Back up your holdings</h2><div class="panel"><p class="small" style="margin:12px 0 0">They live only in this browser. Copy this text somewhere safe. To use another phone, paste it into Restore there.</p>' +
+    '<label for="bk">Backup</label><textarea id="bk" readonly>' + esc(backup) + '</textarea><button class="btn quiet" data-act="copy">Copy backup</button>' +
+    '<label for="rs">Restore from a backup</label><textarea id="rs" placeholder="Paste backup text here"></textarea>' +
+    '<button class="btn quiet" data-act="restore">Restore</button> <button class="btn quiet warn" data-act="clear">Delete all my holdings</button></div>';
   msg = '';
 }
 
-// ----------------------------------------------------------------- shell
+/* ----------------------------------------------------------------- shell */
 function render() {
   if (!DATA) return;
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.className = b.getAttribute('data-tab') === tab ? 'on' : ''; });
@@ -255,7 +525,6 @@ function render() {
   else renderSettings();
 }
 function setTab(t) { tab = t; try { history.replaceState(null, '', '#' + t); } catch (e) {} render(); window.scrollTo(0, 0); }
-
 function numVal(id) { var v = $(id) ? parseFloat($(id).value) : NaN; return isNaN(v) ? null : v; }
 
 document.addEventListener('click', function (e) {
@@ -265,9 +534,9 @@ document.addEventListener('click', function (e) {
   var act = t.getAttribute('data-act');
   if (act === 'add') {
     var sym = ($('f-sym').value || '').trim().toUpperCase(), date = $('f-date').value, qty = numVal('f-qty'), price = numVal('f-price');
-    if (!DATA.symbols[sym]) msg = 'Symbol not found. Pick one from the suggestions, or add it to data/extra.txt on GitHub.';
-    else if (!date || date > todayISO()) msg = 'Choose the date you bought (not in the future).';
-    else if (!qty || qty < 1 || Math.floor(qty) !== qty) msg = 'Quantity must be a whole number.';
+    if (!DATA.symbols[sym]) msg = 'That symbol is not in the list. Pick one from the suggestions, or add it to data/extra.txt on GitHub.';
+    else if (!date || date > todayISO()) msg = 'Choose the date you bought, not a future date.';
+    else if (!qty || qty < 1 || Math.floor(qty) !== qty) msg = 'Shares must be a whole number.';
     else if (!price || price <= 0) msg = 'Enter the price you paid per share.';
     if (msg) { prefill = { sym: sym, price: price }; return render(); }
     var h = { id: Date.now(), sym: sym, buyDate: date, price: price, qty: qty };
@@ -285,19 +554,20 @@ document.addEventListener('click', function (e) {
   } else if (act === 'save-settings') {
     var map = { 's-cap': 'capPerStock', 's-stop': 'stopPct', 's-arm': 'trailArmPct', 's-trail': 'trailPct', 's-days': 'trendDays', 's-dd': 'warnDdPct' };
     Object.keys(map).forEach(function (id) { var v = numVal(id); if (v != null && v >= 0) settings[map[id]] = v; });
-    save(KEY_S, settings); msg = 'Saved.'; render();
+    save(KEY_S, settings); msg = 'Rules saved.'; msgKind = 'ok'; render();
   } else if (act === 'copy') {
     var ta = $('bk'); ta.select();
     try { navigator.clipboard.writeText(ta.value); } catch (er) { document.execCommand('copy'); }
+    t.textContent = 'Copied';
   } else if (act === 'restore') {
     try {
       var b = JSON.parse($('rs').value);
       if (!b || !Array.isArray(b.holdings)) throw new Error('bad');
       holdings = b.holdings; settings = Object.assign({}, LT.DEFAULTS, b.settings || {});
-      save(KEY_H, holdings); save(KEY_S, settings); msg = 'Restored ' + holdings.length + ' holdings.'; render();
-    } catch (er) { alert('That does not look like a backup from this page.'); }
+      save(KEY_H, holdings); save(KEY_S, settings); msg = 'Restored ' + holdings.length + ' holdings.'; msgKind = 'ok'; render();
+    } catch (er) { alert('That text is not a backup from this page.'); }
   } else if (act === 'clear') {
-    if (confirm('Delete ALL holdings from this device? Back them up first if you need them.')) { holdings = []; save(KEY_H, holdings); render(); }
+    if (confirm('Delete ALL holdings from this device? Make a backup first if you need them.')) { holdings = []; save(KEY_H, holdings); render(); }
   }
 });
 document.addEventListener('change', function (e) {
@@ -312,18 +582,20 @@ document.addEventListener('input', function (e) { if (e.target.id === 'q') { loo
 function start(d) {
   DATA = d;
   var age = LT.daysBetween(d.last_day, todayISO());
-  $('asof').textContent = 'Prices to ' + d.last_day + ' (market close). Updated ' + d.asof + '.';
+  $('asof').textContent = 'Prices to ' + niceDate(d.last_day);
+  $('asof').title = 'Updated ' + d.asof;
   var warn = '';
-  if (age > 4) warn += 'The prices are ' + age + ' days old. The daily update may have stopped: open your GitHub repository, go to Actions, and run "Daily update" again.';
+  if (age > 4) warn += 'These prices are ' + age + ' days old. The daily update may have stopped: open your GitHub repository, go to Actions, and run Daily update again.';
   if (d.errors && d.errors.length > 10) warn += (warn ? ' ' : '') + d.errors.length + ' symbols had problems in the last update.';
-  if (warn) $('banner').innerHTML = '<div class="banner">' + esc(warn) + '</div>';
+  if (warn) $('banner').innerHTML = '<div class="note-bar">' + esc(warn) + '</div>';
   var h = (location.hash || '').replace('#', '');
   tab = ['holdings', 'ideas', 'lookup', 'settings'].indexOf(h) >= 0 ? h : 'holdings';
   render();
 }
 fetch('market.json?v=' + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(start).catch(function () {
-  $('asof').textContent = 'No price data yet.';
-  $('view').innerHTML = '<div class="card">The data file is not there yet. In your GitHub repository open <b>Actions</b>, choose <b>Daily update</b> and press <b>Run workflow</b>. Wait a few minutes, then reload this page.</div>';
+  $('asof').textContent = 'No prices yet';
+  $('view').innerHTML = '<section class="hero"><h1 class="verdict">The first price update has not run yet.</h1></section>' +
+    '<div class="empty">In your GitHub repository open <b>Actions</b>, choose <b>Daily update</b> and press <b>Run workflow</b>. Wait a few minutes, then reload this page.</div>';
 });
 })();
 </script>
