@@ -1,0 +1,4 @@
+# Extra things to track that are not in your main list: ETFs, index funds, anything on NSE.
+# One symbol a line, optionally SYMBOL|Name. A wrong symbol is just skipped with an error note.
+NIFTYBEES|Nippon Nifty 50 ETF
+GOLDBEES|Nippon Gold ETF

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>My Long-Term Tracker</title>
+<style>
+:root{--bg:#f6f7f8;--card:#fff;--text:#14181c;--muted:#5d6872;--line:#e2e6ea;--brand:#0f766e;--brand-text:#fff;
+--red:#b42318;--red-bg:#fde8e6;--amber:#9a5b00;--amber-bg:#fdf1d8;--blue:#175cd3;--blue-bg:#e3eefe;--grey:#475467;--grey-bg:#eceff3;
+--good:#157347;--bad:#b42318}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1316;--card:#171c20;--text:#e8ecef;--muted:#9aa5ae;--line:#272e34;--brand:#2dd4bf;--brand-text:#04201d;
+--red:#ff8a80;--red-bg:#3b1a17;--amber:#ffc86b;--amber-bg:#3a2b0d;--blue:#8ab4ff;--blue-bg:#14284a;--grey:#b6c0c8;--grey-bg:#242b31;
+--good:#5ddc9a;--bad:#ff8a80}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.wrap{max-width:720px;margin:0 auto;padding:12px}
+h1{font-size:1.25rem;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:.85rem}
+.banner{background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:.9rem}
+nav{display:flex;gap:6px;margin:12px 0;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5}
+nav button{flex:1;padding:10px 4px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;font:inherit;font-size:.9rem}
+nav button.on{background:var(--brand);color:var(--brand-text);border-color:var(--brand);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.sym{font-weight:700;font-size:1.05rem}
+.name{color:var(--muted);font-size:.8rem}
+.pill{font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.SELL{background:var(--red-bg);color:var(--red)}.REVIEW{background:var(--amber-bg);color:var(--amber)}
+.ADD{background:var(--blue-bg);color:var(--blue)}.HOLD{background:var(--grey-bg);color:var(--grey)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
+.grid div{font-size:.8rem;color:var(--muted)}.grid b{display:block;color:var(--text);font-size:.95rem}
+.up{color:var(--good)}.down{color:var(--bad)}
+.why{margin:8px 0 0;padding-left:18px;font-size:.9rem}.why li{margin:2px 0}
+.note{font-size:.85rem;color:var(--amber);margin-top:6px}
+.small{font-size:.8rem;color:var(--muted)}
+label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
+textarea{min-height:90px;font-size:.8rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button.primary{background:var(--brand);color:var(--brand-text);border:0;padding:11px 14px;border-radius:10px;font:inherit;font-weight:600;margin-top:12px}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:7px 10px;border-radius:10px;font:inherit;font-size:.85rem}
+button.danger{color:var(--red)}
+details summary{cursor:pointer;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{font-size:.78rem;background:var(--grey-bg);color:var(--grey);padding:3px 8px;border-radius:8px}
+.err{color:var(--bad);font-size:.9rem;margin-top:8px}
+svg.spark{width:100%;height:70px;margin-top:6px}svg.spark polyline{fill:none;stroke:var(--brand);stroke-width:2;vector-effect:non-scaling-stroke}
+footer{color:var(--muted);font-size:.78rem;margin:18px 0 30px}
+.check{display:flex;gap:10px;align-items:center;margin:10px 0}.check input{width:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>My Long-Term Tracker</h1>
+  <div class="sub" id="asof">Loading prices...</div>
+  <div id="banner"></div>
+  <nav id="tabs">
+    <button data-tab="holdings">Holdings</button>
+    <button data-tab="ideas">Ideas</button>
+    <button data-tab="lookup">Look up</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+  <main id="view"></main>
+  <footer>
+    Education and tooling, not financial advice. The signals are simple price rules, not predictions: they
+    cannot see results, news or fraud. Prices are free Yahoo Finance data, end of day, and can be wrong or late.
+    Your holdings are saved only in this browser on this device; use Settings to back them up.
+  </footer>
+</div>
+<script src="logic.js"></script>
+<script>
+(function () {
+'use strict';
+var LT = window.LT, inr = LT.inr;
+var KEY_H = 'lt_holdings_v1', KEY_S = 'lt_settings_v1';
+var DATA = null, tab = 'holdings', prefill = null, msg = '', lookupQ = '';
+var ideaOpts = { minChecks: 5, onlyLists: false, affordableOnly: true };
+var canSave = true;
+
+function load(key, dflt) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : dflt; } catch (e) { canSave = false; return dflt; } }
+function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { canSave = false; return false; } }
+var holdings = load(KEY_H, []);
+var settings = Object.assign({}, LT.DEFAULTS, load(KEY_S, {}));
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function pct(x, d) { if (x == null || isNaN(x)) return '-'; return (x > 0 ? '+' : '') + Number(x).toFixed(d == null ? 1 : d) + '%'; }
+function cls(x) { return x > 0 ? 'up' : (x < 0 ? 'down' : ''); }
+function todayISO() { var d = new Date(), m = ('0' + (d.getMonth() + 1)).slice(-2), day = ('0' + d.getDate()).slice(-2); return d.getFullYear() + '-' + m + '-' + day; }
+function $(id) { return document.getElementById(id); }
+
+// ---------------------------------------------------------------- pieces
+function spark(closes) {
+  var pts = LT.sparkPoints(closes || [], 300, 70);
+  return pts ? '<svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-label="price chart, about a year"><polyline points="' + pts + '"/></svg>' : '';
+}
+function detail(sym, s) {
+  var m = s.m || {}, h = '';
+  h += '<div class="grid">' +
+    '<div>1 month<b class="' + cls(m.r1m) + '">' + pct(m.r1m) + '</b></div>' +
+    '<div>6 months<b class="' + cls(m.r6m) + '">' + pct(m.r6m) + '</b></div>' +
+    '<div>12 months<b class="' + cls(m.r12m) + '">' + pct(m.r12m) + '</b></div>' +
+    '<div>vs 200-day avg<b class="' + cls(m.vs200) + '">' + pct(m.vs200) + '</b></div>' +
+    '<div>from 52w high<b class="' + cls(m.dd) + '">' + pct(m.dd) + '</b></div>' +
+    '<div>volatility<b>' + (m.vol == null ? '-' : m.vol + '%') + '</b></div></div>';
+  if (m.checks != null) {
+    h += '<div class="small">Trend checks passed: <b>' + m.checks + ' of 6</b>' +
+      (m.failed && m.failed.length ? '. Missed: ' + esc(m.failed.join('; ')) : '') + '</div>';
+  } else {
+    h += '<div class="small">Not enough price history for the 6 trend checks.</div>';
+  }
+  return h + spark(s.c);
+}
+function listBadges(s) { return (s.L || []).map(function (l) { return '<span class="chip">' + esc(l) + '</span>'; }).join(''); }
+
+// ------------------------------------------------------------- holdings
+function renderHoldings() {
+  var today = todayISO(), order = { SELL: 0, REVIEW: 1, ADD: 2, HOLD: 3 }, rows = [], inv = 0, val = 0;
+  holdings.forEach(function (h) {
+    var s = DATA.symbols[h.sym];
+    if (!s) { rows.push({ h: h, missing: true, k: 9 }); return; }
+    var r = LT.evaluate(h, s, DATA.dates, settings, today);
+    inv += r.invested; val += r.value;
+    rows.push({ h: h, s: s, r: r, k: order[r.status] });
+  });
+  rows.sort(function (a, b) { return a.k - b.k; });
+  var out = '';
+  if (rows.length) {
+    var pnl = val - inv, p = inv ? (val / inv - 1) * 100 : 0;
+    out += '<div class="card"><div class="row"><div><div class="small">Invested</div><b>' + inr(Math.round(inv)) + '</b></div>' +
+      '<div><div class="small">Now worth</div><b>' + inr(Math.round(val)) + '</b></div>' +
+      '<div><div class="small">Profit / loss</div><b class="' + cls(pnl) + '">' + inr(Math.round(pnl)) + ' (' + pct(p) + ')</b></div></div></div>';
+  }
+  rows.forEach(function (row) {
+    var h = row.h;
+    if (row.missing) {
+      out += '<div class="card"><div class="row"><div><span class="sym">' + esc(h.sym) + '</span><div class="name">Not in the data file. Add it to data/extra.txt on GitHub.</div></div>' +
+        '<button class="ghost danger" data-act="del" data-id="' + h.id + '">Remove</button></div></div>';
+      return;
+    }
+    var r = row.r, s = row.s;
+    out += '<div class="card"><div class="row"><div><span class="sym">' + esc(h.sym) + '</span><div class="name">' + esc(s.n) + '</div></div>' +
+      '<span class="pill ' + r.status + '">' + r.status + '</span></div>' +
+      '<ul class="why">' + r.reasons.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+      r.notes.map(function (x) { return '<div class="note">' + esc(x) + '</div>'; }).join('') +
+      (r.stale ? '<div class="note">This price is old: the last update could not refresh this stock.</div>' : '') +
+      '<div class="grid"><div>Bought<b>' + h.qty + ' x ' + inr(h.price) + '</b></div>' +
+      '<div>Price now<b>' + inr(s.p) + '</b></div>' +
+      '<div>Profit / loss<b class="' + cls(r.pnl) + '">' + inr(Math.round(r.pnl)) + ' (' + pct(r.pnlPct) + ')</b></div>' +
+      '<div>Held<b>' + r.daysHeld + ' days</b></div>' +
+      '<div>Tax bucket<b>' + (r.isLong ? 'Long-term' : 'Short-term') + '</b></div>' +
+      '<div>' + (r.isLong ? 'Long-term since' : 'Long-term from') + '<b>' + esc(r.longFrom) + '</b></div></div>' +
+      '<div class="small">Your sell levels: stop ' + inr(Math.round(r.stopPrice * 100) / 100) +
+      (r.trailPrice ? ' | trailing ' + inr(Math.round(r.trailPrice * 100) / 100) : ' | trailing starts after a ' + settings.trailArmPct + '% gain') +
+      ' | peak since buying ' + inr(r.peak) + '</div>' +
+      '<details><summary class="small">Chart and trend details</summary>' + detail(h.sym, s) + '</details>' +
+      '<div style="margin-top:8px"><button class="ghost danger" data-act="del" data-id="' + h.id + '">Remove</button></div></div>';
+  });
+  if (!rows.length) out += '<div class="card">No holdings yet. Add what you own below, or pick something from the Ideas tab.</div>';
+
+  var syms = Object.keys(DATA.symbols).sort();
+  var pf = prefill || {};
+  out += '<details class="card"' + (rows.length ? '' : ' open') + (pf.sym ? ' open' : '') + '><summary>Add a stock I bought</summary>' +
+    '<label>Stock symbol</label><input id="f-sym" list="symlist" autocapitalize="characters" autocomplete="off" placeholder="e.g. JIOFIN" value="' + esc(pf.sym || '') + '">' +
+    '<datalist id="symlist">' + syms.map(function (x) { return '<option value="' + esc(x) + '">' + esc(DATA.symbols[x].n) + '</option>'; }).join('') + '</datalist>' +
+    '<div class="two"><div><label>Buy date</label><input id="f-date" type="date" max="' + today + '" value="' + today + '"></div>' +
+    '<div><label>Quantity</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1" placeholder="shares"></div></div>' +
+    '<div class="two"><div><label>Price you paid</label><input id="f-price" type="number" inputmode="decimal" step="0.01" value="' + (pf.price || '') + '"></div>' +
+    '<div><label>Your stop price (optional)</label><input id="f-stop" type="number" inputmode="decimal" step="0.01"></div></div>' +
+    '<label>Your target price (optional)</label><input id="f-target" type="number" inputmode="decimal" step="0.01">' +
+    '<button class="primary" data-act="add">Save holding</button>' + (msg ? '<div class="err">' + esc(msg) + '</div>' : '') + '</details>';
+  if (!canSave) out += '<div class="banner">This browser is blocking storage (private mode?), so holdings will not be saved.</div>';
+  $('view').innerHTML = out;
+  msg = ''; prefill = null;
+}
+
+// ---------------------------------------------------------------- ideas
+function renderIdeas() {
+  var res = LT.ideaCandidates(DATA.symbols, { minChecks: ideaOpts.minChecks, onlyLists: ideaOpts.onlyLists,
+    affordableOnly: ideaOpts.affordableOnly, cap: settings.capPerStock });
+  var out = '<div class="card"><b>Stocks passing the trend checks</b><div class="small">A price-trend screen only: it says nothing about the business. ' +
+    'Check results, debt and valuation yourself (for example on Screener.in) before buying.</div>' +
+    '<label>Minimum checks passed (of 6)</label><select id="i-min">' +
+    [4, 5, 6].map(function (n) { return '<option value="' + n + '"' + (n === ideaOpts.minChecks ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
+    '<div class="check"><input type="checkbox" id="i-lists"' + (ideaOpts.onlyLists ? ' checked' : '') + '><span>Only stocks on my own lists (data/screens.txt)</span></div>' +
+    '<div class="check"><input type="checkbox" id="i-aff"' + (ideaOpts.affordableOnly ? ' checked' : '') + '><span>Only if 1 share fits under my ' + inr(settings.capPerStock) + ' cap</span></div></div>';
+  out += '<div class="small">' + res.length + ' found' + (res.length > 40 ? ', showing the first 40' : '') + '.</div>';
+  res.slice(0, 40).forEach(function (r) {
+    var s = r.s, m = s.m;
+    out += '<div class="card"><div class="row"><div><span class="sym">' + esc(r.sym) + '</span><div class="name">' + esc(s.n) + '</div></div>' +
+      '<div style="text-align:right"><b>' + inr(s.p) + '</b><div class="small">' + m.checks + ' of 6 checks</div></div></div>' +
+      '<div class="chips"><span class="chip">12m ' + pct(m.r12m, 0) + '</span><span class="chip">6m ' + pct(m.r6m, 0) + '</span>' +
+      '<span class="chip">vs 200d ' + pct(m.vs200, 0) + '</span><span class="chip">from high ' + pct(m.dd, 0) + '</span>' + listBadges(s) + '</div>' +
+      '<div class="small">' + settings.capPerStock + ' rupees buys ' + r.qty + ' share' + (r.qty === 1 ? '' : 's') + ' (about ' + inr(Math.round(r.cost)) + ').</div>' +
+      '<details><summary class="small">Details</summary>' + detail(r.sym, s) + '</details>' +
+      '<div style="margin-top:8px"><button class="ghost" data-act="bought" data-sym="' + esc(r.sym) + '">I bought this</button></div></div>';
+  });
+  $('view').innerHTML = out;
+}
+
+// --------------------------------------------------------------- lookup
+function renderLookup() {
+  var out = '<div class="card"><label>Search any stock by symbol or name</label><input id="q" placeholder="e.g. JIO or Reliance" value="' + esc(lookupQ) + '" autocomplete="off"></div><div id="qres"></div>';
+  $('view').innerHTML = out;
+  showLookup();
+}
+function showLookup() {
+  var syms = LT.findSymbols(DATA.symbols, lookupQ, 8), out = '';
+  syms.forEach(function (sym) {
+    var s = DATA.symbols[sym];
+    out += '<div class="card"><div class="row"><div><span class="sym">' + esc(sym) + '</span><div class="name">' + esc(s.n) + '</div></div>' +
+      '<div style="text-align:right"><b>' + inr(s.p) + '</b><div class="small">' + esc(s.d) + '</div></div></div>' + listBadges(s) + detail(sym, s) +
+      '<div style="margin-top:8px"><button class="ghost" data-act="bought" data-sym="' + esc(sym) + '">I bought this</button></div></div>';
+  });
+  if (lookupQ && !syms.length) out = '<div class="card">Nothing found. If it is an ETF or a stock outside your list, add it to data/extra.txt on GitHub.</div>';
+  $('qres').innerHTML = out;
+}
+
+// ------------------------------------------------------------- settings
+function field(id, label, val, hint) {
+  return '<label>' + label + '</label><input id="' + id + '" type="number" inputmode="decimal" step="any" value="' + esc(val) + '">' + (hint ? '<div class="small">' + hint + '</div>' : '');
+}
+function renderSettings() {
+  var backup = JSON.stringify({ holdings: holdings, settings: settings });
+  $('view').innerHTML = '<div class="card"><b>Your rules</b>' +
+    field('s-cap', 'Most you want in one stock (rupees)', settings.capPerStock) +
+    field('s-stop', 'Sell rule: price this % below what you paid', settings.stopPct, 'Default 20. A wider stop means fewer false alarms and bigger losses.') +
+    field('s-arm', 'Trailing stop starts after a gain of (%)', settings.trailArmPct) +
+    field('s-trail', 'Trailing stop: sell if it falls this % from its peak', settings.trailPct) +
+    field('s-days', 'Review if closed under the 200-day average this many days in a row', settings.trendDays) +
+    field('s-dd', 'Review if this % below its peak since you bought', settings.warnDdPct) +
+    '<button class="primary" data-act="save-settings">Save rules</button>' + (msg ? '<div class="err" style="color:var(--good)">' + esc(msg) + '</div>' : '') + '</div>' +
+    '<details class="card"><summary>How the signals work</summary><div class="small">' +
+    '<p><b>SELL</b>: your stop price was hit, or after a gain of at least the trailing-start % it fell by the trailing % from its peak.</p>' +
+    '<p><b>REVIEW</b>: it closed under its 200-day average for several days in a row, or reached your target, or is well off its peak since you bought. Look at the news and results, then decide.</p>' +
+    '<p><b>ADD</b>: trend is up, price is not stretched above its 50-day average, and the holding is under 80% of your cap.</p>' +
+    '<p><b>HOLD</b>: no rule hit.</p>' +
+    '<p><b>Tax</b>: for listed shares, a sale more than 12 months after buying is long-term (12.5% above Rs 1.25 lakh of gains a year as published for 2026-27); within 12 months it is short-term (20%). The page shows the date and counts the days. Confirm with a tax professional or your broker statement.</p></div></details>' +
+    '<div class="card"><b>Back up or move your holdings</b><div class="small">Copy this text somewhere safe. To use another phone, paste it into the restore box there.</div>' +
+    '<label>Backup</label><textarea id="bk" readonly>' + esc(backup) + '</textarea><button class="ghost" data-act="copy">Copy</button>' +
+    '<label>Restore from a backup</label><textarea id="rs" placeholder="paste backup text here"></textarea><button class="ghost" data-act="restore">Restore</button>' +
+    ' <button class="ghost danger" data-act="clear">Delete all my holdings</button></div>';
+  msg = '';
+}
+
+// ----------------------------------------------------------------- shell
+function render() {
+  if (!DATA) return;
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.className = b.getAttribute('data-tab') === tab ? 'on' : ''; });
+  if (tab === 'holdings') renderHoldings();
+  else if (tab === 'ideas') renderIdeas();
+  else if (tab === 'lookup') renderLookup();
+  else renderSettings();
+}
+function setTab(t) { tab = t; try { history.replaceState(null, '', '#' + t); } catch (e) {} render(); window.scrollTo(0, 0); }
+
+function numVal(id) { var v = $(id) ? parseFloat($(id).value) : NaN; return isNaN(v) ? null : v; }
+
+document.addEventListener('click', function (e) {
+  var t = e.target.closest ? e.target.closest('[data-tab],[data-act]') : null;
+  if (!t) return;
+  if (t.hasAttribute('data-tab')) return setTab(t.getAttribute('data-tab'));
+  var act = t.getAttribute('data-act');
+  if (act === 'add') {
+    var sym = ($('f-sym').value || '').trim().toUpperCase(), date = $('f-date').value, qty = numVal('f-qty'), price = numVal('f-price');
+    if (!DATA.symbols[sym]) msg = 'Symbol not found. Pick one from the suggestions, or add it to data/extra.txt on GitHub.';
+    else if (!date || date > todayISO()) msg = 'Choose the date you bought (not in the future).';
+    else if (!qty || qty < 1 || Math.floor(qty) !== qty) msg = 'Quantity must be a whole number.';
+    else if (!price || price <= 0) msg = 'Enter the price you paid per share.';
+    if (msg) { prefill = { sym: sym, price: price }; return render(); }
+    var h = { id: Date.now(), sym: sym, buyDate: date, price: price, qty: qty };
+    var st = numVal('f-stop'), tg = numVal('f-target');
+    if (st) h.stop = st; if (tg) h.target = tg;
+    holdings.push(h); save(KEY_H, holdings); render();
+  } else if (act === 'del') {
+    if (confirm('Remove this holding from the tracker?')) {
+      var id = Number(t.getAttribute('data-id'));
+      holdings = holdings.filter(function (x) { return x.id !== id; }); save(KEY_H, holdings); render();
+    }
+  } else if (act === 'bought') {
+    var s = DATA.symbols[t.getAttribute('data-sym')];
+    prefill = { sym: t.getAttribute('data-sym'), price: s ? s.p : '' }; setTab('holdings');
+  } else if (act === 'save-settings') {
+    var map = { 's-cap': 'capPerStock', 's-stop': 'stopPct', 's-arm': 'trailArmPct', 's-trail': 'trailPct', 's-days': 'trendDays', 's-dd': 'warnDdPct' };
+    Object.keys(map).forEach(function (id) { var v = numVal(id); if (v != null && v >= 0) settings[map[id]] = v; });
+    save(KEY_S, settings); msg = 'Saved.'; render();
+  } else if (act === 'copy') {
+    var ta = $('bk'); ta.select();
+    try { navigator.clipboard.writeText(ta.value); } catch (er) { document.execCommand('copy'); }
+  } else if (act === 'restore') {
+    try {
+      var b = JSON.parse($('rs').value);
+      if (!b || !Array.isArray(b.holdings)) throw new Error('bad');
+      holdings = b.holdings; settings = Object.assign({}, LT.DEFAULTS, b.settings || {});
+      save(KEY_H, holdings); save(KEY_S, settings); msg = 'Restored ' + holdings.length + ' holdings.'; render();
+    } catch (er) { alert('That does not look like a backup from this page.'); }
+  } else if (act === 'clear') {
+    if (confirm('Delete ALL holdings from this device? Back them up first if you need them.')) { holdings = []; save(KEY_H, holdings); render(); }
+  }
+});
+document.addEventListener('change', function (e) {
+  if (e.target.id === 'i-min') ideaOpts.minChecks = Number(e.target.value);
+  else if (e.target.id === 'i-lists') ideaOpts.onlyLists = e.target.checked;
+  else if (e.target.id === 'i-aff') ideaOpts.affordableOnly = e.target.checked;
+  else return;
+  render();
+});
+document.addEventListener('input', function (e) { if (e.target.id === 'q') { lookupQ = e.target.value; showLookup(); } });
+
+function start(d) {
+  DATA = d;
+  var age = LT.daysBetween(d.last_day, todayISO());
+  $('asof').textContent = 'Prices to ' + d.last_day + ' (market close). Updated ' + d.asof + '.';
+  var warn = '';
+  if (age > 4) warn += 'The prices are ' + age + ' days old. The daily update may have stopped: open your GitHub repository, go to Actions, and run "Daily update" again.';
+  if (d.errors && d.errors.length > 10) warn += (warn ? ' ' : '') + d.errors.length + ' symbols had problems in the last update.';
+  if (warn) $('banner').innerHTML = '<div class="banner">' + esc(warn) + '</div>';
+  var h = (location.hash || '').replace('#', '');
+  tab = ['holdings', 'ideas', 'lookup', 'settings'].indexOf(h) >= 0 ? h : 'holdings';
+  render();
+}
+fetch('market.json?v=' + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(start).catch(function () {
+  $('asof').textContent = 'No price data yet.';
+  $('view').innerHTML = '<div class="card">The data file is not there yet. In your GitHub repository open <b>Actions</b>, choose <b>Daily update</b> and press <b>Run workflow</b>. Wait a few minutes, then reload this page.</div>';
+});
+})();
+</script>
+</body>
+</html>

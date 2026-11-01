@@ -1,0 +1,6 @@
+# Your own shortlists (for example from Screener.in).
+# A line starting with ## names a list; the symbols under it belong to that list.
+# The Ideas tab can then show only the stocks on your lists. Example:
+#
+## LT Quality Compounders
+## LT High Growth Watch
