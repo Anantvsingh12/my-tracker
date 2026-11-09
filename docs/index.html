@@ -207,6 +207,15 @@ footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
     var trailArmed = peak >= buy * (1 + st.trailArmPct / 100);
     var trailPrice = trailArmed ? peak * (1 - st.trailPct / 100) : null;
 
+    // the stop-loss in force today: your own price, the fixed % below cost, or the trailing stop once it is higher
+    var effStop = stopPrice, stopKind = h.stop ? 'yours' : 'fixed';
+    var stopWhy = h.stop ? 'the price you set yourself' : st.stopPct + '% below what you paid';
+    if (trailPrice != null && trailPrice > effStop) {
+      effStop = trailPrice; stopKind = 'trailing';
+      stopWhy = 'trailing: ' + st.trailPct + '% below its peak of ' + inr(Math.round(peak * 100) / 100) + ' since you bought';
+    }
+    var historyShort = dates.length > 0 && h.buyDate < dates[0];
+
     var sell = [], review = [], notes = [];
     if (s.p <= stopPrice) sell.push('Price ' + inr(s.p) + ' is at or below your stop ' + inr(stopPrice));
     if (trailPrice != null && s.p <= trailPrice)
@@ -217,6 +226,9 @@ footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
       review.push('Reached your target ' + inr(h.target) + ': decide whether to take some profit');
     if (!sell.length && ddPeak <= -st.warnDdPct)
       review.push('Down ' + Math.round(-ddPeak) + '% from its peak since you bought');
+    if (historyShort)
+      notes.push('You bought before ' + dates[0] + ', the start of the price history kept here, so the peak and the ' +
+                 'trailing stop are worked out from the last year of prices only.');
     if (daysToLT > 0 && daysToLT <= st.taxWarnDays && pnl > 0)
       notes.push(daysToLT + ' days until the gain is taxed at the long-term rate (from ' + ltFrom +
                  '). Unless a sell rule hits, waiting may save tax.');
@@ -234,7 +246,8 @@ footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
     return {
       status: status, reasons: reasons, notes: notes, invested: invested, value: value, pnl: pnl, pnlPct: pnlPct,
       daysHeld: daysHeld, isLong: daysToLT <= 0, daysToLT: daysToLT, longFrom: ltFrom, peak: peak, ddPeak: ddPeak,
-      stopPrice: stopPrice, trailPrice: trailPrice, stale: !!s.stale
+      stopPrice: stopPrice, trailPrice: trailPrice, effStop: effStop, stopKind: stopKind, stopWhy: stopWhy,
+      stopCushionPct: (effStop / s.p - 1) * 100, historyShort: historyShort, stale: !!s.stale
     };
   }
 
@@ -310,6 +323,7 @@ function cls(x) { return x > 0 ? 'up' : (x < 0 ? 'down' : ''); }
 function money(n) { return inr(Math.round(n)); }
 function todayISO() { var d = new Date(), m = ('0' + (d.getMonth() + 1)).slice(-2), day = ('0' + d.getDate()).slice(-2); return d.getFullYear() + '-' + m + '-' + day; }
 function niceDate(iso) { var p = iso.split('-'); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }); }
+function niceDateY(iso) { var p = iso.split('-'); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
 function $(id) { return document.getElementById(id); }
 
 /* ---------------------------------------------------------- small pieces */
@@ -326,10 +340,10 @@ function pips(n) { var o = ''; for (var i = 0; i < 6; i++) o += '<i class="' + (
 // where the price sits between your stop and its peak
 function ribbon(h, s, r) {
   var buy = Number(h.price), tgt = h.target ? Number(h.target) : null;
-  var lo = Math.min(r.stopPrice, s.p, buy) * 0.97, hi = Math.max(r.peak, tgt || 0, s.p, buy) * 1.03, span = hi - lo || 1;
+  var lo = Math.min(r.effStop, s.p, buy) * 0.97, hi = Math.max(r.peak, tgt || 0, s.p, buy) * 1.03, span = hi - lo || 1;
   function at(v) { return Math.max(0, Math.min(100, (v - lo) / span * 100)); }
-  var a = at(r.stopPrice), b = at(s.p), left = Math.min(a, b), width = Math.abs(b - a);
-  var kind = s.p <= r.stopPrice ? 'bad' : (s.p >= buy ? 'good' : 'mid');
+  var a = at(r.effStop), b = at(s.p), left = Math.min(a, b), width = Math.abs(b - a);
+  var kind = s.p <= r.effStop ? 'bad' : (s.p >= buy ? 'good' : 'mid');
   var h2 = '<div class="ribbon"><div class="track">' +
     '<div class="fill ' + kind + '" style="left:' + left.toFixed(1) + '%;width:' + width.toFixed(1) + '%"></div>' +
     '<i class="tick stop" style="left:' + a.toFixed(1) + '%"></i>' +
@@ -337,7 +351,7 @@ function ribbon(h, s, r) {
     (r.peak > buy ? '<i class="tick peak" style="left:' + at(r.peak).toFixed(1) + '%"></i>' : '') +
     (tgt ? '<i class="tick tgt" style="left:' + at(tgt).toFixed(1) + '%"></i>' : '') +
     '<i class="dot" style="left:' + b.toFixed(1) + '%"></i></div>' +
-    '<div class="keys"><span class="k-stop">Stop ' + inr(Math.round(r.stopPrice * 100) / 100) + '</span><span>Paid ' + inr(buy) + '</span>' +
+    '<div class="keys"><span class="k-stop">Stop-loss ' + inr(Math.round(r.effStop * 100) / 100) + (r.stopKind === 'trailing' ? ' (trailing)' : (r.stopKind === 'yours' ? ' (yours)' : '')) + '</span><span>Paid ' + inr(buy) + '</span>' +
     (r.peak > buy ? '<span class="k-peak">Peak ' + inr(r.peak) + '</span>' : '') +
     (tgt ? '<span class="k-tgt">Target ' + inr(tgt) + '</span>' : '') + '</div></div>';
   return h2;
@@ -407,13 +421,17 @@ function renderHoldings() {
         ribbon(h, s, r) + first + '</summary>' +
         '<div class="more">' +
         '<ul class="why">' + r.reasons.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        '<p class="small" style="margin:0 0 8px">Stop-loss now ' + inr(Math.round(r.effStop * 100) / 100) + ' (' + esc(r.stopWhy) + '). ' +
+        (s.p <= r.effStop ? 'The price is already at or under it.' : 'The price is ' + Math.abs(r.stopCushionPct).toFixed(1) + '% above it.') + '</p>' +
         r.notes.map(function (x) { return '<div class="hint">' + esc(x) + '</div>'; }).join('') +
         (r.stale ? '<div class="hint">This price is old: the last update could not refresh this stock.</div>' : '') +
         '<dl class="facts">' +
         '<div><dt>You bought</dt><dd>' + h.qty + ' at ' + inr(h.price) + '</dd></div>' +
+        '<div><dt>Bought on</dt><dd>' + esc(niceDateY(h.buyDate)) + '</dd></div>' +
         '<div><dt>Price now</dt><dd>' + inr(s.p) + '</dd></div>' +
-        '<div><dt>Held for</dt><dd>' + r.daysHeld + ' days</dd></div>' +
-        '<div><dt>' + (r.isLong ? 'Long-term since' : 'Long-term from') + '</dt><dd>' + esc(niceDate(r.longFrom)) + (r.isLong ? '' : ' (short-term now)') + '</dd></div></dl>' +
+        '<div><dt>Held for</dt><dd>' + (r.daysHeld >= 365 ? (r.daysHeld / 365).toFixed(1) + ' years' : r.daysHeld + ' days') + '</dd></div>' +
+        '<div><dt>Stop-loss now</dt><dd>' + inr(Math.round(r.effStop * 100) / 100) + '</dd></div>' +
+        '<div><dt>' + (r.isLong ? 'Long-term since' : 'Long-term from') + '</dt><dd>' + esc(niceDateY(r.longFrom)) + (r.isLong ? '' : ' (short-term now)') + '</dd></div></dl>' +
         trendFacts(s) +
         '<button class="btn quiet warn" data-act="del" data-id="' + h.id + '">Remove this holding</button></div></details>';
     });
@@ -426,8 +444,9 @@ function renderHoldings() {
   out += '<details class="form"' + ((rows.length && !pf.sym && !msg) ? '' : ' open') + '><summary>Add a stock I bought</summary>' +
     '<label for="f-sym">Stock symbol</label><input id="f-sym" list="symlist" autocapitalize="characters" autocomplete="off" placeholder="for example JIOFIN" value="' + esc(pf.sym || '') + '">' +
     '<datalist id="symlist">' + syms.map(function (x) { return '<option value="' + esc(x) + '">' + esc(DATA.symbols[x].n) + '</option>'; }).join('') + '</datalist>' +
-    '<div class="two"><div><label for="f-date">Buy date</label><input id="f-date" type="date" max="' + today2 + '" value="' + today2 + '"></div>' +
+    '<div class="two"><div><label for="f-date">Buy date (any past date)</label><input id="f-date" type="date" min="1995-01-01" max="' + today2 + '" value="' + today2 + '"></div>' +
     '<div><label for="f-qty">Shares</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1"></div></div>' +
+    '<p class="small" style="margin:8px 0 0">Bought years ago? Use the real date and price. The date decides the 12-month tax rule. Charts and the peak only reach back about a year.</p>' +
     '<div class="two"><div><label for="f-price">Price you paid</label><input id="f-price" type="number" inputmode="decimal" step="0.01" value="' + (pf.price || '') + '"></div>' +
     '<div><label for="f-stop">Your stop price (optional)</label><input id="f-stop" type="number" inputmode="decimal" step="0.01"></div></div>' +
     '<label for="f-target">Your target price (optional)</label><input id="f-target" type="number" inputmode="decimal" step="0.01">' +
@@ -496,7 +515,7 @@ function renderSettings() {
     field('s-dd', 'Review if it is this % below its peak since you bought', settings.warnDdPct) +
     '<button class="btn" data-act="save-settings">Save rules</button>' + (msg ? '<div class="' + msgKind + '">' + esc(msg) + '</div>' : '') + '</div>' +
     '<h2 class="sec">How the signals work</h2><div class="panel prose">' +
-    '<p><b>Sell</b>: your stop price was hit, or after a gain it fell by the trailing % from its peak.</p>' +
+    '<p><b>Sell</b>: the price is at or under your stop-loss. Right now that is the price you set for the holding, or ' + settings.stopPct + '% below what you paid. Once a stock has gained ' + settings.trailArmPct + '%, a trailing stop ' + settings.trailPct + '% below its peak takes over whenever it is higher.</p>' +
     '<p><b>Review</b>: it closed under its 200-day average for several days running, reached your target, or is well below its peak since you bought. Check the news and results, then decide.</p>' +
     '<p><b>Room to add</b>: the trend is up, the price is not stretched above its 50-day average, and you hold under 80% of your limit.</p>' +
     '<p><b>Hold</b>: no rule has been hit.</p>' +
@@ -528,7 +547,7 @@ document.addEventListener('click', function (e) {
   if (act === 'add') {
     var sym = ($('f-sym').value || '').trim().toUpperCase(), date = $('f-date').value, qty = numVal('f-qty'), price = numVal('f-price');
     if (!DATA.symbols[sym]) msg = 'That symbol is not in the list. Pick one from the suggestions, or add it to data/extra.txt on GitHub.';
-    else if (!date || date > todayISO()) msg = 'Choose the date you bought, not a future date.';
+    else if (!date || date > todayISO() || date < '1995-01-01') msg = 'Choose the real date you bought: a past date, not before 1995.';
     else if (!qty || qty < 1 || Math.floor(qty) !== qty) msg = 'Shares must be a whole number.';
     else if (!price || price <= 0) msg = 'Enter the price you paid per share.';
     if (msg) { prefill = { sym: sym, price: price }; return render(); }
