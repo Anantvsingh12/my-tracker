@@ -131,11 +131,18 @@ footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
 .bar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 8px;border:0;background:none;color:var(--muted);font-size:.72rem;font-weight:500;cursor:pointer;min-height:56px}
 .bar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .bar button.on{color:var(--violet);font-weight:650}
-.st.OPEN{background:rgba(98,217,164,.14);color:var(--leaf)} .st.UPC{background:var(--violet-t);color:var(--violet)} .st.CLOSED{background:var(--slate-t);color:var(--muted)}
-.ledger>.OPEN{border-left-color:var(--leaf)} .ledger>.UPC{border-left-color:var(--violet)} .ledger>.CLOSED{border-left-color:var(--violet-dim)}
-.band{font-weight:600} .gmp{font-size:.85rem}
-.inline{display:flex;gap:8px;align-items:center;margin-top:12px}.inline input{flex:1}.inline .btn{margin:0;flex:none}
 .bar button{padding-left:2px;padding-right:2px}
+.seg{display:flex;gap:6px;margin:4px 0 6px}
+.seg button{flex:1;padding:10px 6px;border:1px solid var(--hair);background:var(--sheet);color:var(--muted);border-radius:12px;font-weight:550;cursor:pointer;min-height:44px}
+.seg button.on{background:var(--violet-t);color:var(--violet);border-color:var(--violet-dim)}
+.hl{display:block;color:var(--ink);text-decoration:none;font-weight:550;line-height:1.35}
+.hl:hover{text-decoration:underline}
+.ix{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 16px;border-bottom:1px solid var(--hair)}
+.ix:last-child{border-bottom:0}
+.src{font-size:.78rem;color:var(--muted);margin-top:3px}
+.sub{font-size:.8rem;color:var(--muted);margin:14px 2px 6px}
+.mhl{display:block;font-size:.85rem;color:var(--muted);margin-top:6px;text-decoration:none;line-height:1.35}
+.mhl:hover{text-decoration:underline}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -156,7 +163,7 @@ footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
 <nav class="bar" id="tabs" aria-label="Sections"><div class="bar-in">
   <button data-tab="holdings"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2.5"/><path d="M8 8V6.5A2.5 2.5 0 0 1 10.5 4h3A2.5 2.5 0 0 1 16 6.5V8"/></svg>Holdings</button>
   <button data-tab="ideas"><svg viewBox="0 0 24 24"><path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg>Ideas</button>
-  <button data-tab="ipos"><svg viewBox="0 0 24 24"><path d="M3 9V6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5V9a2.5 2.5 0 0 0 0 5v2.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5V14a2.5 2.5 0 0 0 0-5z"/><path d="M14.5 5.5v12" stroke-dasharray="2 2.5"/></svg>IPOs</button>
+  <button data-tab="news"><svg viewBox="0 0 24 24"><path d="M5 5h11v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M16 9h3v9a1 1 0 0 1-1 1h-2"/><path d="M8 9h5M8 12h5M8 15h3"/></svg>News</button>
   <button data-tab="lookup"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Search</button>
   <button data-tab="settings"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Rules</button>
 </div></nav>
@@ -303,98 +310,37 @@ footer{color:var(--muted);font-size:.76rem;margin:30px 0 0;max-width:34em}
     return pts.join(' ');
   }
 
-  // ------------------------------------------------------------ IPOs
-  var MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
-  function isoDate(y, mo, d) {
-    var t = Date.UTC(y, mo - 1, d), dd = new Date(t);
-    if (dd.getUTCFullYear() !== y || dd.getUTCMonth() !== mo - 1 || dd.getUTCDate() !== d) return null;
-    return fmt(t);
+  // ------------------------------------------------------------ news helpers
+  function relTime(ts, nowMs) {
+    if (!ts) return '';
+    var sec = Math.max(0, Math.round((nowMs - ts * 1000) / 1000));
+    if (sec < 90) return 'just now';
+    var m = Math.round(sec / 60);
+    if (m < 60) return m + ' min ago';
+    var h = Math.round(m / 60);
+    if (h < 48) return h + (h === 1 ? ' hour ago' : ' hours ago');
+    return Math.round(h / 24) + ' days ago';
   }
-  function parseDate(str) {
-    var x = String(str == null ? '' : str).trim(), m;
-    if ((m = x.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) return isoDate(+m[1], +m[2], +m[3]);
-    if ((m = x.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/))) return isoDate(+m[3], +m[2], +m[1]);
-    if ((m = x.match(/^(\d{1,2})\s+([A-Za-z]{3})[A-Za-z]*\.?,?\s+(\d{4})$/)) && MONTHS[m[2].toLowerCase()])
-      return isoDate(+m[3], MONTHS[m[2].toLowerCase()], +m[1]);
-    return null;
-  }
-  function num(str) {
-    var x = String(str == null ? '' : str).replace(/\u20B9|rs\.?|,/gi, '').replace(/\s+/g, '');
-    if (x === '' || !/^[-+]?\d+(\.\d+)?$/.test(x)) return null;
-    return Number(x);
-  }
-  function newId() { return Date.now() * 1000 + Math.floor(Math.random() * 1000); }
-
-  // one IPO from text parts: name, price band, lot, open, close, listing (optional), GMP (optional)
-  function ipoFromParts(p, today) {
-    var name = (p[0] || '').trim();
-    if (!name) return { error: 'the name is missing' };
-    var band = String(p[1] || '').replace(/\u20B9|rs\.?|,/gi, '').replace(/\s+/g, '').replace(/to/gi, '-').replace(/\u2013|\u2014/g, '-');
-    var bm = band.match(/^(\d+(?:\.\d+)?)(?:-(\d+(?:\.\d+)?))?$/);
-    if (!bm) return { error: 'price band should look like 140-150' };
-    var low = Number(bm[1]), high = bm[2] != null ? Number(bm[2]) : low;
-    if (high < low) { var tmp = low; low = high; high = tmp; }
-    var lot = num(p[2]);
-    if (lot == null || lot < 1 || Math.floor(lot) !== lot) return { error: 'the lot size should be a whole number' };
-    var open = parseDate(p[3]), close = parseDate(p[4]);
-    if (!open || !close) return { error: 'open and close dates should look like 2026-11-12 or 12-11-2026' };
-    if (close < open) return { error: 'the close date is before the open date' };
-    var listing = null;
-    if (p[5] != null && String(p[5]).trim() !== '') {
-      listing = parseDate(p[5]);
-      if (!listing) return { error: 'the listing date could not be read' };
-      if (listing < close) return { error: 'the listing date is before the close date' };
+  function safeUrl(u) { return /^https?:\/\//i.test(String(u == null ? '' : u)) ? String(u) : null; }
+  function moveWord(c) { return c > 0 ? 'up' : (c < 0 ? 'down' : 'flat'); }
+  // one plain sentence about the two main indices
+  function marketSummary(indices) {
+    var by = {};
+    (indices || []).forEach(function (i) { by[i.s] = i; });
+    var parts = [];
+    function part(sym, label) {
+      var i = by[sym];
+      if (!i) return;
+      parts.push(label + ' is ' + (i.c === 0 ? 'flat' : moveWord(i.c) + ' ' + Math.abs(i.c).toFixed(1) + '%'));
     }
-    var gmp = null;
-    if (p[6] != null && String(p[6]).trim() !== '') {
-      gmp = num(p[6]);
-      if (gmp == null) return { error: 'GMP should be a number such as 25 or -5' };
-    }
-    return { ipo: { id: newId(), name: name, low: low, high: high, lot: lot, open: open, close: close, listing: listing,
-                    gmp: gmp, gmpDate: gmp == null ? null : today } };
-  }
-  function parseIpoLines(text, today) {
-    var items = [], errors = [];
-    String(text || '').split(/\r?\n/).forEach(function (raw, i) {
-      var line = raw.trim();
-      if (!line || line.charAt(0) === '#') return;
-      var parts = line.indexOf('|') >= 0 ? line.split('|') : (line.indexOf('\t') >= 0 ? line.split('\t') : line.split(','));
-      var r = ipoFromParts(parts, today);
-      if (r.error) errors.push('Line ' + (i + 1) + ': ' + r.error); else items.push(r.ipo);
-    });
-    return { items: items, errors: errors };
-  }
-  function ipoInfo(i, today) {
-    var status;
-    if (today < i.open) status = 'upcoming';
-    else if (today <= i.close) status = 'open';
-    else if (i.listing && today >= i.listing) status = 'listed';
-    else status = 'closed';
-    var hasGmp = i.gmp != null && !isNaN(i.gmp);
-    return {
-      status: status, opensIn: daysBetween(today, i.open), closesIn: daysBetween(today, i.close),
-      listsIn: i.listing ? daysBetween(today, i.listing) : null, lotCost: i.high * i.lot, hasGmp: hasGmp,
-      gmpPct: hasGmp ? i.gmp / i.high * 100 : null, estList: hasGmp ? i.high + i.gmp : null,
-      gainPerLot: hasGmp ? i.gmp * i.lot : null, gmpAge: i.gmpDate ? daysBetween(i.gmpDate, today) : null
-    };
-  }
-  function ipoGroups(list, today, keepDays) {
-    var keep = keepDays == null ? 45 : keepDays, g = { open: [], upcoming: [], closed: [] };
-    list.forEach(function (i) {
-      var info = ipoInfo(i, today);
-      if (info.status === 'open') g.open.push({ i: i, info: info });
-      else if (info.status === 'upcoming') g.upcoming.push({ i: i, info: info });
-      else if (daysBetween(i.close, today) <= keep) g.closed.push({ i: i, info: info });
-    });
-    g.open.sort(function (a, b) { return a.info.closesIn - b.info.closesIn; });
-    g.upcoming.sort(function (a, b) { return a.info.opensIn - b.info.opensIn; });
-    g.closed.sort(function (a, b) { return a.info.closesIn > b.info.closesIn ? -1 : 1; });
-    return g;
+    part('^NSEI', 'the Nifty 50'); part('^GSPC', 'the S&P 500');
+    if (!parts.length) return 'Market news';
+    var t = parts.join(' and ') + '.';
+    return t.charAt(0).toUpperCase() + t.slice(1);
   }
 
   return { DEFAULTS: DEFAULTS, inr: inr, daysBetween: daysBetween, longTermFrom: longTermFrom,
-           evaluate: evaluate, parseDate: parseDate, parseIpoLines: parseIpoLines, ipoFromParts: ipoFromParts, ipoInfo: ipoInfo,
-           ipoGroups: ipoGroups, ideaCandidates: ideaCandidates, findSymbols: findSymbols, sparkPoints: sparkPoints };
+           evaluate: evaluate, relTime: relTime, safeUrl: safeUrl, marketSummary: marketSummary, ideaCandidates: ideaCandidates, findSymbols: findSymbols, sparkPoints: sparkPoints };
 });
 </script>
 <script>
@@ -402,7 +348,7 @@ if (!window.LT) { document.getElementById("view").innerHTML = "<p style=\"paddin
 (function () {
 'use strict';
 var LT = window.LT, inr = LT.inr;
-var KEY_H = 'lt_holdings_v1', KEY_S = 'lt_settings_v1', KEY_I = 'lt_ipos_v1';
+var KEY_H = 'lt_holdings_v1', KEY_S = 'lt_settings_v1';
 var DATA = null, tab = 'holdings', prefill = null, msg = '', msgKind = 'err', lookupQ = '', firstPaint = true;
 var ideaOpts = { minChecks: 5, onlyLists: false, affordableOnly: true };
 var canSave = true;
@@ -411,8 +357,8 @@ var LABEL = { SELL: 'Sell', REVIEW: 'Review', ADD: 'Room to add', HOLD: 'Hold' }
 function load(key, dflt) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : dflt; } catch (e) { canSave = false; return dflt; } }
 function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { canSave = false; return false; } }
 var holdings = load(KEY_H, []);
-var ipos = load(KEY_I, []);
-var ipoMsg = '';
+try { localStorage.removeItem('lt_ipos_v1'); } catch (e) {}      // an old tab, now removed
+var NEWS = null, newsView = 'india';
 var settings = Object.assign({}, LT.DEFAULTS, load(KEY_S, {}));
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -582,69 +528,75 @@ function renderIdeas() {
   $('view').className = ''; $('view').innerHTML = out;
 }
 
-/* ------------------------------------------------------------------ IPOs */
-function ipoTag(i, info) {
-  if (info.status === 'open') return info.closesIn === 0 ? 'Closes today' : 'Closes in ' + info.closesIn + (info.closesIn === 1 ? ' day' : ' days');
-  if (info.status === 'upcoming') return info.opensIn === 1 ? 'Opens tomorrow' : 'Opens in ' + info.opensIn + ' days';
-  if (info.status === 'listed') return 'Listed';
-  return i.listing ? 'Lists in ' + info.listsIn + (info.listsIn === 1 ? ' day' : ' days') : 'Awaiting listing';
+/* ------------------------------------------------------------------ news */
+function money2(p, cur) { return p == null ? '-' : (cur === 'usd' ? '$' + Number(p).toLocaleString('en-US', { maximumFractionDigits: 2 }) : inr(p)); }
+function indexRows(list) {
+  if (!list.length) return emptyBox('No index prices came back this time.');
+  return '<div class="ledger">' + list.map(function (i) {
+    var v = Number(i.p).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    return '<div class="ix"><span>' + esc(i.n) + '</span><span style="text-align:right"><b>' + v + '</b> <span class="' + (i.s === '^INDIAVIX' ? '' : cls(i.c)) + '">' + pct(i.c, 2) + '</span></span></div>';
+  }).join('') + '</div>';
 }
-function ipoRow(it) {
-  var i = it.i, info = it.info, k = info.status === 'open' ? 'OPEN' : (info.status === 'upcoming' ? 'UPC' : 'CLOSED');
-  var gmpTxt = info.hasGmp ? (i.gmp >= 0 ? '+' : '-') + inr(Math.abs(i.gmp)) + ' (' + pct(info.gmpPct) + ')' : 'not added';
-  var gmpCls = info.hasGmp ? cls(i.gmp) : '';
-  var band = i.low === i.high ? inr(i.high) : inr(i.low) + ' to ' + inr(i.high);
-  var over = info.lotCost > settings.capPerStock;
-  var stale = info.hasGmp && info.gmpAge >= 2 && (info.status === 'open' || info.status === 'upcoming');
-  return '<details class="' + k + '"><summary><div class="top"><div><span class="sym">' + esc(i.name) + '</span>' +
-    '<span class="st ' + k + '">' + ipoTag(i, info) + '</span><span class="nm">' + i.lot + ' shares a lot, one lot ' + money(info.lotCost) + '</span></div>' +
-    '<div class="right"><b class="band">' + band + '</b><span class="gmp ' + gmpCls + '">GMP ' + gmpTxt + '<span class="chev"></span></span></div></div>' +
-    (over ? '<p class="line small" style="margin-top:6px">One lot is above your ' + money(settings.capPerStock) + ' limit.</p>' : '') + '</summary>' +
-    '<div class="more"><dl class="facts">' +
-    '<div><dt>Price band</dt><dd>' + band + '</dd></div>' +
-    '<div><dt>Lot</dt><dd>' + i.lot + ' shares</dd></div>' +
-    '<div><dt>One lot costs (top of band)</dt><dd>' + inr(info.lotCost) + '</dd></div>' +
-    '<div><dt>Opens</dt><dd>' + esc(niceDateY(i.open)) + '</dd></div>' +
-    '<div><dt>Closes</dt><dd>' + esc(niceDateY(i.close)) + '</dd></div>' +
-    '<div><dt>Listing</dt><dd>' + (i.listing ? esc(niceDateY(i.listing)) : 'not added') + '</dd></div>' +
-    '<div><dt>Listing price if GMP holds</dt><dd>' + (info.hasGmp ? inr(info.estList) : '-') + '</dd></div>' +
-    '<div><dt>Gain on one lot, before costs</dt><dd class="' + (info.hasGmp ? cls(info.gainPerLot) : '') + '">' + (info.hasGmp ? inr(Math.round(info.gainPerLot)) : '-') + '</dd></div></dl>' +
-    (info.hasGmp ? '<p class="small">GMP added ' + (info.gmpAge === 0 ? 'today' : info.gmpAge + (info.gmpAge === 1 ? ' day ago' : ' days ago')) + '.' + (stale ? ' It moves every day, so check a fresh figure before you decide.' : '') + '</p>' : '') +
-    '<div class="inline"><input id="g-' + i.id + '" type="number" inputmode="decimal" step="any" placeholder="New GMP in rupees" aria-label="New GMP for ' + esc(i.name) + '">' +
-    '<button class="btn" data-act="ipo-gmp" data-id="' + i.id + '">Update GMP</button></div>' +
-    '<button class="btn quiet warn" data-act="ipo-del" data-id="' + i.id + '">Remove this IPO</button></div></details>';
+function headlineRows(items, max, none) {
+  var now = Date.now(), rows = items.filter(function (it) { return LT.safeUrl(it.l); }).slice(0, max);
+  if (!rows.length) return emptyBox(none || 'No headlines came back this time.');
+  return '<div class="ledger">' + rows.map(function (it) {
+    return '<div class="item"><a class="hl" href="' + esc(LT.safeUrl(it.l)) + '" target="_blank" rel="noopener noreferrer">' + esc(it.t) + '</a>' +
+      '<div class="src">' + esc(it.s) + (it.ts ? ', ' + LT.relTime(it.ts, now) : '') + '</div></div>';
+  }).join('') + '</div>';
 }
-function ipoHeadline(g, total) {
-  if (!total) return 'Track mainboard IPOs here.';
-  var o = g.open.length, u = g.upcoming.length;
-  if (o) return o + (o === 1 ? ' IPO is' : ' IPOs are') + ' open for bidding today.';
-  if (u) return 'Nothing is open today. ' + u + (u === 1 ? ' is' : ' are') + ' coming up.';
-  return 'Nothing is open or coming up right now.';
+function stockRows(list, cur, none, withNews) {
+  if (!list.length) return emptyBox(none);
+  return '<div class="ledger">' + list.map(function (m) {
+    var hl = withNews ? (m.hl || []).filter(function (h) { return LT.safeUrl(h.l); }).map(function (h) {
+      return '<a class="mhl" href="' + esc(LT.safeUrl(h.l)) + '" target="_blank" rel="noopener noreferrer">' + esc(h.t) + ' (' + esc(h.s) + ')</a>';
+    }).join('') : '';
+    return '<div class="item"><div class="top"><div><span class="sym">' + esc(m.sym) + '</span><span class="nm">' + esc(m.n) + '</span></div>' +
+      '<div class="right"><b>' + money2(m.p, cur) + '</b><span class="pl ' + cls(m.c) + '">' + pct(m.c, 2) + '</span></div></div>' +
+      (m.why ? '<p class="line small" style="margin-top:6px">' + esc(m.why) + '</p>' : '') + hl + '</div>';
+  }).join('') + '</div>';
 }
-function renderIpos() {
-  var today = todayISO(), g = LT.ipoGroups(ipos, today), total = ipos.length, out = '';
-  out += '<section class="hero"><h1 class="verdict">' + ipoHeadline(g, total) + '</h1>' +
-    '<p class="worth">GMP is an unofficial grey-market price. It is not a promise, it can fall to zero or turn negative before listing, and it is not a recommendation to apply.</p></section>';
-  [['open', 'Open now'], ['upcoming', 'Coming up'], ['closed', 'Recently closed']].forEach(function (sec) {
-    var list = g[sec[0]];
-    if (list.length) out += '<h2 class="sec">' + sec[1] + '</h2><div class="ledger">' + list.map(ipoRow).join('') + '</div>';
-  });
-  if (!total) out += emptyBox('Nothing added yet. When you see a mainboard IPO on a site such as Chittorgarh or your broker app, add it below.');
-  out += '<details class="form"' + (total && !ipoMsg ? '' : ' open') + '><summary>Add an IPO</summary>' +
-    '<label for="p-name">Company</label><input id="p-name" autocomplete="off" placeholder="for example Alpha Industries">' +
-    '<div class="two"><div><label for="p-low">Price band, low</label><input id="p-low" type="number" inputmode="decimal" step="0.01"></div>' +
-    '<div><label for="p-high">Price band, high</label><input id="p-high" type="number" inputmode="decimal" step="0.01"></div></div>' +
-    '<div class="two"><div><label for="p-lot">Lot size (shares)</label><input id="p-lot" type="number" inputmode="numeric" step="1" min="1"></div>' +
-    '<div><label for="p-gmp">GMP in rupees (optional)</label><input id="p-gmp" type="number" inputmode="decimal" step="any"></div></div>' +
-    '<div class="two"><div><label for="p-open">Opens</label><input id="p-open" type="date"></div>' +
-    '<div><label for="p-close">Closes</label><input id="p-close" type="date"></div></div>' +
-    '<label for="p-list">Listing date (optional)</label><input id="p-list" type="date">' +
-    '<button class="btn" data-act="ipo-add">Add IPO</button>' + (ipoMsg ? '<div class="err">' + esc(ipoMsg) + '</div>' : '') + '</details>' +
-    '<details class="form"><summary>Paste several at once</summary>' +
-    '<p class="small" style="margin:0">One IPO per line, parts separated by | in this order: name | price band | lot | open | close | listing | GMP. Listing and GMP can be left empty.</p>' +
-    '<textarea id="p-bulk" placeholder="Alpha Industries | 140-150 | 100 | 2026-11-12 | 2026-11-16 | 2026-11-19 | 25"></textarea>' +
-    '<button class="btn" data-act="ipo-bulk">Add these</button></details>';
-  $('view').className = ''; $('view').innerHTML = out; ipoMsg = '';
+function renderNews() {
+  var out = '';
+  if (!NEWS) {
+    $('view').className = '';
+    $('view').innerHTML = '<section class="hero"><h1 class="verdict">News has not been built yet.</h1></section>' +
+      emptyBox('In your GitHub repository open <b>Actions</b>, choose <b>Daily update</b> and press <b>Run workflow</b>. When it finishes, reload this page.');
+    return;
+  }
+  var ageH = NEWS.ts ? (Date.now() / 1000 - NEWS.ts) / 3600 : 0, nowMs = Date.now(), ix = NEWS.indices || [];
+  out += '<section class="hero" style="padding-bottom:12px"><h1 class="verdict">' + esc(LT.marketSummary(ix)) + '</h1>' +
+    '<p class="worth">News updated ' + esc(LT.relTime(NEWS.ts, nowMs) || NEWS.asof) + '. Index levels are the latest daily prices.' +
+    (ageH > 36 ? ' This is old: the daily update may have stopped.' : '') + '</p></section>' +
+    '<div class="seg" role="tablist">' + [['india', 'India'], ['world', 'World'], ['watch', 'To watch']].map(function (v) {
+      return '<button class="' + (newsView === v[0] ? 'on' : '') + '" data-act="news-view" data-v="' + v[0] + '">' + v[1] + '</button>';
+    }).join('') + '</div>';
+  if (newsView === 'india') {
+    out += '<h2 class="sec">Indian markets</h2>' + indexRows(ix.filter(function (i) { return i.k === 'in'; })) +
+      '<h2 class="sec">India headlines</h2>' + headlineRows(NEWS.in_news || [], 15) +
+      '<h2 class="sec">Indian stocks in the news</h2>' + stockRows(NEWS.in_mentions || [], 'inr', 'None of your tracked stocks was named in the headlines this time.', true) +
+      '<h2 class="sec">Biggest movers</h2><div class="sub">Gainers</div>' + stockRows((NEWS.in_up || []).slice(0, 5), 'inr', 'No gainers on the list.') +
+      '<div class="sub">Losers</div>' + stockRows((NEWS.in_down || []).slice(0, 5), 'inr', 'No losers on the list.');
+  } else if (newsView === 'world') {
+    out += '<h2 class="sec">World markets</h2>' + indexRows(ix.filter(function (i) { return i.k === 'world'; })) +
+      '<div class="sub">Currency and commodities</div>' + indexRows(ix.filter(function (i) { return i.k === 'other'; })) +
+      '<h2 class="sec">World headlines</h2>' + headlineRows(NEWS.world_news || [], 15) +
+      '<h2 class="sec">Global stocks in the news</h2>' + stockRows(NEWS.us_mentions || [], 'usd', 'No big US stock was named in the headlines this time.', true) +
+      '<h2 class="sec">Biggest US movers</h2><div class="sub">Gainers</div>' + stockRows(NEWS.us_up || [], 'usd', 'No gainers among the big US stocks.') +
+      '<div class="sub">Losers</div>' + stockRows(NEWS.us_down || [], 'usd', 'No losers among the big US stocks.');
+  } else {
+    out += '<h2 class="sec">Indian stocks to watch</h2>' +
+      '<p class="small" style="margin:0 2px 8px">Picked by trading volume and price move from your tracked list. It is a prompt to look, not a recommendation.</p>' +
+      stockRows(NEWS.in_watch || [], 'inr', 'No tracked stock stood out on volume and price move this time.') +
+      '<div class="sub">The newspapers\u2019 own lists</div>' + headlineRows(NEWS.watch_in || [], 6, 'No "stocks to watch" article was found this time.') +
+      '<h2 class="sec">Global stocks to watch</h2>' +
+      '<p class="small" style="margin:0 2px 8px">The biggest movers among large US stocks, then the publishers\u2019 own lists.</p>' +
+      stockRows((NEWS.us_up || []).slice(0, 3).concat((NEWS.us_down || []).slice(0, 3)), 'usd', 'No big mover this time.') +
+      '<div class="sub">Publishers\u2019 lists</div>' + headlineRows(NEWS.watch_world || [], 6, 'No "stocks to watch" article was found this time.');
+  }
+  var feeds = NEWS.feeds || [], good = feeds.filter(function (f) { return f.ok; }).length;
+  out += '<p class="small" style="margin-top:22px">' + good + ' of ' + feeds.length + ' news feeds answered in the last update. Headlines belong to their publishers; tap one to read it there.</p>';
+  $('view').className = ''; $('view').innerHTML = out;
 }
 
 /* ---------------------------------------------------------------- search */
@@ -666,7 +618,7 @@ function field(id, label, val, hint) {
   return '<div class="field"><span>' + label + (hint ? '<small>' + hint + '</small>' : '') + '</span><input id="' + id + '" type="number" inputmode="decimal" step="any" value="' + esc(val) + '" aria-label="' + esc(label) + '"></div>';
 }
 function renderSettings() {
-  var backup = JSON.stringify({ holdings: holdings, settings: settings, ipos: ipos });
+  var backup = JSON.stringify({ holdings: holdings, settings: settings });
   $('view').className = '';
   $('view').innerHTML = '<section class="hero" style="padding-bottom:6px"><h1 class="verdict">Your rules.</h1><p class="worth">Change them any time. Every holding is checked against these each evening.</p></section>' +
     '<div class="panel">' +
@@ -696,7 +648,7 @@ function render() {
   Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.className = b.getAttribute('data-tab') === tab ? 'on' : ''; });
   if (tab === 'holdings') renderHoldings();
   else if (tab === 'ideas') renderIdeas();
-  else if (tab === 'ipos') renderIpos();
+  else if (tab === 'news') renderNews();
   else if (tab === 'lookup') renderLookup();
   else renderSettings();
 }
@@ -731,36 +683,8 @@ document.addEventListener('click', function (e) {
     var map = { 's-cap': 'capPerStock', 's-stop': 'stopPct', 's-arm': 'trailArmPct', 's-trail': 'trailPct', 's-days': 'trendDays', 's-dd': 'warnDdPct' };
     Object.keys(map).forEach(function (id) { var v = numVal(id); if (v != null && v >= 0) settings[map[id]] = v; });
     save(KEY_S, settings); msg = 'Rules saved.'; msgKind = 'ok'; render();
-  } else if (act === 'ipo-add') {
-    var nm = ($('p-name').value || '').trim(), hi = numVal('p-high'), lo = numVal('p-low'), lot = numVal('p-lot'), gm = numVal('p-gmp');
-    var op = $('p-open').value, cl = $('p-close').value, ls = $('p-list').value;
-    if (!nm) ipoMsg = 'Enter the company name.';
-    else if (!hi || hi <= 0) ipoMsg = 'Enter the top of the price band.';
-    else if (!lot || lot < 1 || Math.floor(lot) !== lot) ipoMsg = 'Lot size must be a whole number of shares.';
-    else if (!op || !cl) ipoMsg = 'Choose the open and close dates.';
-    else if (cl < op) ipoMsg = 'The close date is before the open date.';
-    else if (ls && ls < cl) ipoMsg = 'The listing date is before the close date.';
-    if (ipoMsg) return render();
-    if (!lo || lo > hi) lo = hi;
-    ipos.push({ id: Date.now() * 1000 + Math.floor(Math.random() * 1000), name: nm, low: lo, high: hi, lot: lot, open: op, close: cl,
-      listing: ls || null, gmp: gm, gmpDate: gm == null ? null : todayISO() });
-    save(KEY_I, ipos); render();
-  } else if (act === 'ipo-bulk') {
-    var r = LT.parseIpoLines($('p-bulk').value, todayISO());
-    r.items.forEach(function (x) { ipos.push(x); });
-    if (r.items.length) save(KEY_I, ipos);
-    ipoMsg = r.errors.length ? (r.items.length ? 'Added ' + r.items.length + '. ' : '') + r.errors.join(' ') : (r.items.length ? '' : 'Nothing to add. Paste one IPO per line.');
-    render();
-  } else if (act === 'ipo-gmp') {
-    var gid = Number(t.getAttribute('data-id')), gv = numVal('g-' + gid);
-    if (gv == null) { alert('Type the GMP as a number, such as 25 or -5.'); return; }
-    ipos.forEach(function (x) { if (x.id === gid) { x.gmp = gv; x.gmpDate = todayISO(); } });
-    save(KEY_I, ipos); render();
-  } else if (act === 'ipo-del') {
-    if (confirm('Remove this IPO from the tracker?')) {
-      var did = Number(t.getAttribute('data-id'));
-      ipos = ipos.filter(function (x) { return x.id !== did; }); save(KEY_I, ipos); render();
-    }
+  } else if (act === 'news-view') {
+    newsView = t.getAttribute('data-v'); render();
   } else if (act === 'copy') {
     var ta = $('bk'); ta.select();
     try { navigator.clipboard.writeText(ta.value); } catch (er) { document.execCommand('copy'); }
@@ -769,8 +693,8 @@ document.addEventListener('click', function (e) {
     try {
       var b = JSON.parse($('rs').value);
       if (!b || !Array.isArray(b.holdings)) throw new Error('bad');
-      holdings = b.holdings; settings = Object.assign({}, LT.DEFAULTS, b.settings || {}); if (Array.isArray(b.ipos)) ipos = b.ipos;
-      save(KEY_H, holdings); save(KEY_S, settings); save(KEY_I, ipos); msg = 'Restored ' + holdings.length + ' holdings.'; msgKind = 'ok'; render();
+      holdings = b.holdings; settings = Object.assign({}, LT.DEFAULTS, b.settings || {});
+      save(KEY_H, holdings); save(KEY_S, settings); msg = 'Restored ' + holdings.length + ' holdings.'; msgKind = 'ok'; render();
     } catch (er) { alert('That text is not a backup from this page.'); }
   } else if (act === 'clear') {
     if (confirm('Delete ALL holdings from this device? Make a backup first if you need them.')) { holdings = []; save(KEY_H, holdings); render(); }
@@ -795,10 +719,12 @@ function start(d) {
   if (d.errors && d.errors.length > 10) warn += (warn ? ' ' : '') + d.errors.length + ' symbols had problems in the last update.';
   if (warn) $('banner').innerHTML = '<div class="note-bar">' + esc(warn) + '</div>';
   var h = (location.hash || '').replace('#', '');
-  tab = ['holdings', 'ideas', 'ipos', 'lookup', 'settings'].indexOf(h) >= 0 ? h : 'holdings';
+  tab = ['holdings', 'ideas', 'news', 'lookup', 'settings'].indexOf(h) >= 0 ? h : 'holdings';
   render();
 }
-fetch('market.json?v=' + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(start).catch(function () {
+var newsP = fetch('news.json?v=' + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).catch(function () { return null; });
+fetch('market.json?v=' + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(function (d) { return newsP.then(function (n) { NEWS = n; start(d); }); }).catch(function () {
   $('asof').textContent = 'No prices yet';
   $('view').innerHTML = '<section class="hero"><h1 class="verdict">The first price update has not run yet.</h1></section>' +
     '<div class="empty">In your GitHub repository open <b>Actions</b>, choose <b>Daily update</b> and press <b>Run workflow</b>. Wait a few minutes, then reload this page.</div>';

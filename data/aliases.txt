@@ -1,0 +1,35 @@
+# How headlines name a company  ->  the start of its official NSE name. alias|NSE name starts with
+zomato|Eternal
+reliance|Reliance Industries
+sbi|State Bank of India
+tcs|Tata Consultancy
+infosys|Infosys
+wipro|Wipro
+hcl tech|HCL Technologies
+hcltech|HCL Technologies
+tech mahindra|Tech Mahindra
+hdfc bank|HDFC Bank
+icici bank|ICICI Bank
+axis bank|Axis Bank
+kotak mahindra bank|Kotak Mahindra Bank
+airtel|Bharti Airtel
+l&t|Larsen
+m&m|Mahindra & Mahindra
+maruti|Maruti Suzuki
+bajaj finance|Bajaj Finance
+sun pharma|Sun Pharmaceutical
+asian paints|Asian Paints
+titan|Titan Company
+nestle india|Nestle India
+coal india|Coal India
+ongc|Oil & Natural Gas
+ntpc|NTPC
+power grid|Power Grid Corporation
+lic|Life Insurance Corporation
+paytm|One 97
+hal|Hindustan Aeronautics
+bel|Bharat Electronics
+jio financial|Jio Financial
+jio platforms|Jio Platforms
+adani enterprises|Adani Enterprises
+adani ports|Adani Ports

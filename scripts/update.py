@@ -179,7 +179,10 @@ def metrics(bars, bench_ret12=None):
             trend = "DOWN"
         else:
             trend = "MIXED"
-    m = {"r1m": ret(21), "r3m": ret(63), "r6m": ret(126), "r12m": ret(252),
+    chg1d = round((price / cl[-2] - 1) * 100, 2) if n >= 2 and cl[-2] else None
+    avg20 = sum(vol[-21:-1]) / 20 if n >= 21 else 0
+    volx = round(vol[-1] / avg20, 2) if avg20 else None          # today's volume against the 20-day average
+    m = {"chg1d": chg1d, "volx": volx, "r1m": ret(21), "r3m": ret(63), "r6m": ret(126), "r12m": ret(252),
          "dma50": round(dma50, 2) if dma50 else None, "dma200": round(dma200, 2) if dma200 else None,
          "vs200": round((price / dma200 - 1) * 100, 1) if dma200 else None,
          "hi52": round(hi52, 2), "lo52": round(lo52, 2), "dd": round((price / hi52 - 1) * 100, 1),

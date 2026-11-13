@@ -77,11 +77,12 @@ t('tax-mark note appears within 30 days of 12 months, only in profit', () => {
   const { dates, s } = mk([100,100,100,100,100,100,100,100,100,110]);
   const near = LT.evaluate({ buyDate: '2025-11-20', price: 100, qty: 10 }, s, dates, {}, today);
   assert.ok(near.daysToLT > 0 && near.daysToLT <= 30);
-  assert.ok(near.notes.length === 1 && !near.isLong);
+  const taxNotes = r => r.notes.filter(x => x.indexOf('long-term rate') >= 0);
+  assert.ok(taxNotes(near).length === 1 && !near.isLong);
   const past = LT.evaluate({ buyDate: '2025-10-01', price: 100, qty: 10 }, s, dates, {}, today);
-  assert.ok(past.isLong && past.notes.length === 0);
+  assert.ok(past.isLong && taxNotes(past).length === 0);
   const loss = LT.evaluate({ buyDate: '2025-11-20', price: 120, qty: 10 }, s, dates, {}, today);
-  assert.strictEqual(loss.notes.length, 0);
+  assert.strictEqual(taxNotes(loss).length, 0);
 });
 
 t('ideas: filters and ordering', () => {
@@ -109,6 +110,49 @@ t('search and sparkline', () => {
   assert.strictEqual(LT.sparkPoints([1, null, 3], 100, 10), '0.0,10.0 100.0,0.0');
   assert.strictEqual(LT.sparkPoints([null], 100, 10), '');
   assert.strictEqual(LT.inr(1234.5), '\u20B91,234.5');
+});
+
+
+t('effective stop: fixed, your own, then trailing once it is higher', () => {
+  const a = mk([100,100,100,100,100,100,100,100,100,100]);
+  const fixed = LT.evaluate({ buyDate: '2026-10-19', price: 100, qty: 10 }, a.s, a.dates, {}, today);
+  assert.strictEqual(fixed.effStop, 80); assert.strictEqual(fixed.stopKind, 'fixed');
+  assert.ok(Math.abs(fixed.stopCushionPct - (-20)) < 1e-9);
+  const own = LT.evaluate({ buyDate: '2026-10-19', price: 100, qty: 10, stop: 92 }, a.s, a.dates, {}, today);
+  assert.strictEqual(own.effStop, 92); assert.strictEqual(own.stopKind, 'yours');
+  const b = mk([100,110,120,130,140,150,150,150,150,150]);
+  const tr = LT.evaluate({ buyDate: '2026-10-19', price: 100, qty: 10 }, b.s, b.dates, {}, today);
+  assert.strictEqual(tr.stopKind, 'trailing'); assert.strictEqual(tr.effStop, 120);   // 150 peak less 20%
+  assert.notStrictEqual(tr.status, 'SELL');
+});
+
+t('a holding bought years ago: dates, tax bucket and the short-history note', () => {
+  const { dates, s } = mk([100,100,100,100,100,100,100,100,100,150]);
+  const r = LT.evaluate({ buyDate: '2021-03-15', price: 40, qty: 10 }, s, dates, {}, today);
+  assert.strictEqual(r.isLong, true);
+  assert.strictEqual(r.longFrom, '2022-03-16');
+  assert.ok(r.daysHeld > 1900);
+  assert.strictEqual(r.historyShort, true);
+  assert.ok(r.notes.some(x => x.indexOf('2026-10-19') >= 0));
+  assert.strictEqual(r.status === 'SELL', false);                                    // 150 vs a stop of 32: fine
+  assert.ok(Math.abs(r.pnlPct - 275) < 1e-9);
+  const recent = LT.evaluate({ buyDate: '2026-10-20', price: 100, qty: 10 }, s, dates, {}, today);
+  assert.strictEqual(recent.historyShort, false);
+});
+
+
+t('news helpers: relative time, safe links, one-line market summary', () => {
+  const now = Date.UTC(2026, 10, 11, 3, 0) ;
+  const at = secAgo => LT.relTime(now / 1000 - secAgo, now);
+  assert.strictEqual(at(20), 'just now'); assert.strictEqual(at(10 * 60), '10 min ago');
+  assert.strictEqual(at(3600), '1 hour ago'); assert.strictEqual(at(5 * 3600), '5 hours ago'); assert.strictEqual(at(3 * 86400), '3 days ago');
+  assert.strictEqual(LT.relTime(null, now), '');
+  assert.strictEqual(LT.safeUrl('https://a.test/x'), 'https://a.test/x');
+  assert.strictEqual(LT.safeUrl('javascript:alert(1)'), null); assert.strictEqual(LT.safeUrl(null), null);
+  const ix = [{ s: '^NSEI', c: 0.42 }, { s: '^GSPC', c: -0.84 }];
+  assert.strictEqual(LT.marketSummary(ix), 'The Nifty 50 is up 0.4% and the S&P 500 is down 0.8%.');
+  assert.strictEqual(LT.marketSummary([{ s: '^GSPC', c: 0 }]), 'The S&P 500 is flat.');
+  assert.strictEqual(LT.marketSummary([]), 'Market news');
 });
 
 console.log('\n' + n + ' tests passed');

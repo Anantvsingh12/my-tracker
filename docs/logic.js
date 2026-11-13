@@ -49,6 +49,15 @@
     var trailArmed = peak >= buy * (1 + st.trailArmPct / 100);
     var trailPrice = trailArmed ? peak * (1 - st.trailPct / 100) : null;
 
+    // the stop-loss in force today: your own price, the fixed % below cost, or the trailing stop once it is higher
+    var effStop = stopPrice, stopKind = h.stop ? 'yours' : 'fixed';
+    var stopWhy = h.stop ? 'the price you set yourself' : st.stopPct + '% below what you paid';
+    if (trailPrice != null && trailPrice > effStop) {
+      effStop = trailPrice; stopKind = 'trailing';
+      stopWhy = 'trailing: ' + st.trailPct + '% below its peak of ' + inr(Math.round(peak * 100) / 100) + ' since you bought';
+    }
+    var historyShort = dates.length > 0 && h.buyDate < dates[0];
+
     var sell = [], review = [], notes = [];
     if (s.p <= stopPrice) sell.push('Price ' + inr(s.p) + ' is at or below your stop ' + inr(stopPrice));
     if (trailPrice != null && s.p <= trailPrice)
@@ -59,6 +68,9 @@
       review.push('Reached your target ' + inr(h.target) + ': decide whether to take some profit');
     if (!sell.length && ddPeak <= -st.warnDdPct)
       review.push('Down ' + Math.round(-ddPeak) + '% from its peak since you bought');
+    if (historyShort)
+      notes.push('You bought before ' + dates[0] + ', the start of the price history kept here, so the peak and the ' +
+                 'trailing stop are worked out from the last year of prices only.');
     if (daysToLT > 0 && daysToLT <= st.taxWarnDays && pnl > 0)
       notes.push(daysToLT + ' days until the gain is taxed at the long-term rate (from ' + ltFrom +
                  '). Unless a sell rule hits, waiting may save tax.');
@@ -76,7 +88,8 @@
     return {
       status: status, reasons: reasons, notes: notes, invested: invested, value: value, pnl: pnl, pnlPct: pnlPct,
       daysHeld: daysHeld, isLong: daysToLT <= 0, daysToLT: daysToLT, longFrom: ltFrom, peak: peak, ddPeak: ddPeak,
-      stopPrice: stopPrice, trailPrice: trailPrice, stale: !!s.stale
+      stopPrice: stopPrice, trailPrice: trailPrice, effStop: effStop, stopKind: stopKind, stopWhy: stopWhy,
+      stopCushionPct: (effStop / s.p - 1) * 100, historyShort: historyShort, stale: !!s.stale
     };
   }
 
@@ -126,6 +139,35 @@
     return pts.join(' ');
   }
 
+  // ------------------------------------------------------------ news helpers
+  function relTime(ts, nowMs) {
+    if (!ts) return '';
+    var sec = Math.max(0, Math.round((nowMs - ts * 1000) / 1000));
+    if (sec < 90) return 'just now';
+    var m = Math.round(sec / 60);
+    if (m < 60) return m + ' min ago';
+    var h = Math.round(m / 60);
+    if (h < 48) return h + (h === 1 ? ' hour ago' : ' hours ago');
+    return Math.round(h / 24) + ' days ago';
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(String(u == null ? '' : u)) ? String(u) : null; }
+  function moveWord(c) { return c > 0 ? 'up' : (c < 0 ? 'down' : 'flat'); }
+  // one plain sentence about the two main indices
+  function marketSummary(indices) {
+    var by = {};
+    (indices || []).forEach(function (i) { by[i.s] = i; });
+    var parts = [];
+    function part(sym, label) {
+      var i = by[sym];
+      if (!i) return;
+      parts.push(label + ' is ' + (i.c === 0 ? 'flat' : moveWord(i.c) + ' ' + Math.abs(i.c).toFixed(1) + '%'));
+    }
+    part('^NSEI', 'the Nifty 50'); part('^GSPC', 'the S&P 500');
+    if (!parts.length) return 'Market news';
+    var t = parts.join(' and ') + '.';
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
   return { DEFAULTS: DEFAULTS, inr: inr, daysBetween: daysBetween, longTermFrom: longTermFrom,
-           evaluate: evaluate, ideaCandidates: ideaCandidates, findSymbols: findSymbols, sparkPoints: sparkPoints };
+           evaluate: evaluate, relTime: relTime, safeUrl: safeUrl, marketSummary: marketSummary, ideaCandidates: ideaCandidates, findSymbols: findSymbols, sparkPoints: sparkPoints };
 });

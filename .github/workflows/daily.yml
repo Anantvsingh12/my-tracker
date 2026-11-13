@@ -2,28 +2,38 @@ name: Daily update
 
 on:
   schedule:
-    # GitHub uses UTC. 12:30 UTC = 18:00 IST, Monday to Friday, after the NSE close.
-    - cron: "30 12 * * 1-5"
-  workflow_dispatch:      # lets you press "Run workflow" by hand
+    # GitHub uses UTC.
+    - cron: "0 3 * * 1-5"      # 03:00 UTC = 08:30 IST: news and world markets before the Indian open
+    - cron: "30 12 * * 1-5"    # 12:30 UTC = 18:00 IST: prices for every stock, then news, after the NSE close
+  workflow_dispatch:           # lets you press "Run workflow" by hand (does everything)
 
 permissions:
   contents: write
 
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Fetch prices and build docs/market.json
+      - name: Fetch prices for every stock (evening and manual runs)
+        if: github.event.schedule != '0 3 * * 1-5'
         run: python scripts/update.py --quiet
+      - name: Fetch news and market snapshot
+        continue-on-error: true
+        run: python scripts/news.py
       - name: Save the new data
         run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
-          git add docs/market.json
+          git add -A docs
           git diff --cached --quiet || git commit -m "Daily data update"
+          git pull --rebase origin main
           git push
